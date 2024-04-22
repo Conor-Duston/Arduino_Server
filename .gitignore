@@ -1,0 +1,5 @@
+#Ignore build path and cpp properties for differnt computers
+Arduino_file_server/build**
+.vscode/c_cpp_properties.json
+
+#May need to ignore files in webpage subdirs

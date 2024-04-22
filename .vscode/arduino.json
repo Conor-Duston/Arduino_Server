@@ -1,0 +1,11 @@
+{
+    "configuration": "cpu=atmega2560",
+    "board": "arduino:avr:mega",
+    "port": "COM6",
+    "programmer": "avrisp",
+    "sketch": "Arduino_file_server\\Arduino_file_server.ino",
+    "output": "Arduino_file_server\\build",
+    "buildPreferences": [
+        
+    ]
+}
