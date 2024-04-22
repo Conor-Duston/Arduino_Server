@@ -43,17 +43,11 @@ void Http_Request_Handler::send_generic_server_error( const char error[]) {
     if (current_client == NULL) {
         return;
     }
-    current_client->println(F("HTTP/1.1 500 Internal Server Error"));
-    current_client->println(F("Content-Type: text/html"));
-    current_client->println(F("Connection: close"));  // the connection will be closed after completion of the response
-    current_client->println();
+    current_client->print(F("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
     // Send info to user so that they are not left in dark
-    current_client->println(F("<!DOCTYPE HTML>"));
-    current_client->println(F("<html>"));
-    current_client->print(F("<h1>"));
+    current_client->print(F("<!DOCTYPE HTML>\r\n<html><h1>"));
     current_client->print(error);
-    current_client->println(F("</h1>"));
-    current_client->println(F("</html>"));
+    current_client->print(F("</h1></html>"));
 }
 
 void Http_Request_Handler::set_client(EthernetClient* client) {
