@@ -83,7 +83,7 @@ void loop() {
     while (client.connected()) {
       if (client.available()) {
         
-        byte http_data[MSG_BFFR_SIZE];
+        byte* http_data = new byte[MSG_BFFR_SIZE];
 
         u16 num_bytes = client.read(http_data, MSG_BFFR_SIZE - 1);
         http_data[num_bytes] = '\0';
@@ -94,13 +94,14 @@ void loop() {
         // Serial.print(F("Message Type: "));
         // Serial.println(header_data.type);
 
-        // Serial.print(F("URI length: "));
+        //RI stands for Resource Identifier, aka file name
+        // Serial.print(F("RI length: "));
         // Serial.println(header_data.file_name_length);
 
-        // Serial.print(F("URI Offset: "));
+        // Serial.print(F("RI Offset: "));
         // Serial.println(header_data.file_name_offset);
 
-        // Serial.print(F("URI: "));
+        // Serial.print(F("RI: "));
         http_data[header_data.file_name_offset + header_data.file_name_length] = '\0';
         char* file_name_pointer = (char*)&http_data[header_data.file_name_offset];
         
@@ -115,23 +116,25 @@ void loop() {
           //Serial.println(&file_name_pointer[1]);
           file_found = file.open(&file_name_pointer[1], O_RDONLY);
         }
+
         if (!file_found) {
-          http_handler.send_generic_server_error("File not opened");
+          if (!file.exists(&file_name_pointer[1])) {
+            //Return that file does not exist
+            http_handler.send_resource_not_found();
+          } else {
+            http_handler.send_generic_server_error((char*)F("File could not be opened"));
+          }
+          //Free data used by http header
+          delete http_data;
+          file_name_pointer = NULL;
           break;
         }
+        //Since file is found and open, no longer need http_header data
+        delete http_data;
+        file_name_pointer = NULL;
 
-        // send a standard http response header
-        client.println(F("HTTP/1.1 200 OK"));
-        client.println(F("Content-Type: text/html"));
-        client.println(F("Connection: close"));  // the connection will be closed after completion of the response
-        client.println();
-        
-        char data[100];
-        int read_chars = 0;
-        do {
-          read_chars = file.read(&data, 100);
-          client.write(data, read_chars);
-        } while (read_chars > 0);
+        // Stream data from file
+        http_handler.stream_text_file(&file);
 
         file.close();
         client.println();
