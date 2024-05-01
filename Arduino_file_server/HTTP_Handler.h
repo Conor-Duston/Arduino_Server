@@ -12,16 +12,16 @@
 #define MAX_DATA_BUFFER_SIZE 255
 
 enum message_type : u8 {
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE,
-    PATCH,
-    UNKOWN
+    GET,        // No body, return has body, already implemented
+    HEAD,       // No body, return does not have body, returns header fields for GET method
+    POST,       // Has body, return has body, is for stuff like adding users "Sends data to server"
+    PUT,        // Has body, return can have body, creates new resource or replaces resource
+    DELETE,     // May have body, return can have body, deletes resource
+    CONNECT,    // No body, no body response, starts 2 way communication <- Do not implement, is for proxy servers
+    OPTIONS,    // No body, can return body, returns allowed message types
+    TRACE,      // No body, return has body, loopback test
+    PATCH,      // No body, may return with body, is for modifying objects on sever
+    UNKOWN      // Default message type, is for case when correct header is not found
 };
 
 struct header_data
