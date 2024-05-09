@@ -21,7 +21,7 @@
 #include <Ethernet.h>
 #include <SdFat.h>
 
-#include "HTTP_Handler.h"
+#include "HTTP_Handler.hpp"
 
 // Server
 byte mac[] = {
@@ -60,7 +60,7 @@ void setup() {
       delay(1);
     }
   }
-
+  
   server.begin();
   Serial.print(F("server is at "));
   Serial.println(Ethernet.localIP());
@@ -91,22 +91,23 @@ void loop() {
 
         header_data header_data = http_handler.read_request(http_data, num_bytes);
 
-        // Serial.print(F("Message Type: "));
-        // Serial.println(header_data.type);
+        Serial.print(F("Message Type: "));
+        Serial.println(header_data.type);
 
-        //RI stands for Resource Identifier, aka file name
+        // // RI stands for Resource Identifier, aka file name
         // Serial.print(F("RI length: "));
         // Serial.println(header_data.file_name_length);
 
-        // Serial.print(F("RI Offset: "));
-        // Serial.println(header_data.file_name_offset);
+        Serial.print(F("RI Offset: "));
+        Serial.println(header_data.file_name_offset);
 
         // Serial.print(F("RI: "));
 
         http_data[header_data.file_name_offset + header_data.file_name_length] = '\0';
         char* file_name_pointer = (char*)&http_data[header_data.file_name_offset];
         
-        //Serial.println(file_name_pointer);
+        // Serial.print(F("File Name: "));
+        // Serial.println(file_name_pointer);
 
         switch (header_data.type) {
           case GET:
@@ -115,8 +116,8 @@ void loop() {
             if (header_data.file_name_length == 1) {
               file_found = file.open("index.html", O_RDONLY);
             } else {
-              //Serial.print("File attempted to be opened: ");
-              //Serial.println(&file_name_pointer[1]);
+              Serial.print("File attempted to be opened: ");
+              Serial.println(&file_name_pointer[1]);
               file_found = file.open(&file_name_pointer[1], O_RDONLY);
             }
 
@@ -125,82 +126,82 @@ void loop() {
                 //Return that file does not exist
                 http_handler.send_resource_not_found();
               } else {
-                http_handler.send_generic_server_error((char*)F("File could not be opened"));
+                http_handler.send_generic_server_error(F("File could not be opened"));
               }
               //Free data used by http header
               delete http_data;
               file_name_pointer = NULL;
               break;
-            }
-
             
-            delete http_data;
-            file_name_pointer = NULL;
+            } else {
+              
+              delete http_data;
+              file_name_pointer = NULL;
 
-            // Stream data from file
-            http_handler.stream_text_file(&file);
+              // Stream data from file
+              http_handler.stream_text_file(&file);
 
-            file.close();
+              file.close();
+            }
 
           break;
 
           case HEAD:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case POST:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case PUT:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case DELETE:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case CONNECT:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case OPTIONS:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case TRACE:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case PATCH:
-            http_handler.send_generic_server_error((char*)F("Unsuported action"));
+            http_handler.send_generic_server_error(F("Unsuported action"));
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case UNKOWN:
           default:
-            http_handler.send_generic_server_error((char*)F("Unkown message type"));
+            http_handler.send_generic_server_error(F("Unkown message type"));
             delete http_data;
             file_name_pointer = NULL;
           break;
         }
         
-        client.println();
         break;
       }   
     }
@@ -208,7 +209,7 @@ void loop() {
    delay(1);
    // close the connection:
    client.stop();
-   Serial.println("client disconnected");
+   Serial.println(F("client disconnected"));
   }
 
   

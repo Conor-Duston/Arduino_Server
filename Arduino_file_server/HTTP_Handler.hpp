@@ -11,6 +11,7 @@
 
 #define MAX_DATA_BUFFER_SIZE 255
 
+//All valid HTTP message types as well as unkown for ill- formated messages
 enum message_type : u8 {
     GET,        // No body, return has body, already implemented
     HEAD,       // No body, return does not have body, returns header fields for GET method
@@ -24,6 +25,7 @@ enum message_type : u8 {
     UNKOWN      // Default message type, is for case when correct header is not found
 };
 
+//Data contained in the header of a http message
 struct header_data
 {
     message_type type;
@@ -31,6 +33,9 @@ struct header_data
     u16 file_name_length;
 };
 
+// Http_Request_Handler is the class for handeling http message protocals
+// This includes extracting data from http messages recieved by the arduino
+// and adding header to send information from the arduino to the client 
 class Http_Request_Handler
 {
     public:
@@ -38,7 +43,7 @@ class Http_Request_Handler
         ~Http_Request_Handler();
 
         //Reads message from client, returns request type
-        header_data read_request(byte* message_buffer, u16 message_length );
+        header_data read_request(const byte* message_buffer, u16 message_length );
         
         //TODO: Implement this method
         void send_data(const byte data[], const int num_size);
@@ -49,26 +54,32 @@ class Http_Request_Handler
         void stream_text_file(ExFatFile* data_stream);
 
         //Sends generic server error for failures on server side stuff
-        void send_generic_server_error(const char error[]);
+        void send_generic_server_error(const __FlashStringHelper *error);
         
-        //Sends 404 Not found error
+        //Sends 404 Not found error, for when a resource is not found
         void send_resource_not_found();
         
         //Sets the Client that the HTTP request handler will work with
         void set_client(EthernetClient* client);
         
-        //Sets the client to NULL in case of dangling pointer issue
+        //Sets the client to NULL when needed
         void reset_client();
 
     protected:
-        //Send the HTTP status code for text headers
+        //Send the HTTP header for text and html documents
         void send_text_header();
         
         //Gets the message type from an HTTP header
         message_type get_message_type(const char message_data[], const u16 message_length);
         
     private:
+        //Client the http handler will work with
         EthernetClient* current_client = NULL;
+        
+        //All header types in one flash string to save memory space
+        static const char http_header_strings [] PROGMEM;        
 };
+
+
 
 #endif
