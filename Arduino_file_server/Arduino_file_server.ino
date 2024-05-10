@@ -69,6 +69,8 @@ void setup() {
     Serial.println(F("Cannot configure SD card"));
     sd.initErrorPrint(&Serial);
   }
+
+  
 }
 
 void loop() {
@@ -91,15 +93,15 @@ void loop() {
 
         header_data header_data = http_handler.read_request(http_data, num_bytes);
 
-        Serial.print(F("Message Type: "));
-        Serial.println(header_data.type);
+        // Serial.print(F("Message Type: "));
+        // Serial.println(header_data.type);
 
         // // RI stands for Resource Identifier, aka file name
         // Serial.print(F("RI length: "));
         // Serial.println(header_data.file_name_length);
 
-        Serial.print(F("RI Offset: "));
-        Serial.println(header_data.file_name_offset);
+        // Serial.print(F("RI Offset: "));
+        // Serial.println(header_data.file_name_offset);
 
         // Serial.print(F("RI: "));
 
@@ -109,6 +111,11 @@ void loop() {
         // Serial.print(F("File Name: "));
         // Serial.println(file_name_pointer);
 
+        //Test to see if leading \n is part of file or not:
+        char data[MAX_DATA_BUFFER_SIZE];
+        int read_chars = 0;
+        
+
         switch (header_data.type) {
           case GET:
             bool file_found;
@@ -116,8 +123,8 @@ void loop() {
             if (header_data.file_name_length == 1) {
               file_found = file.open("index.html", O_RDONLY);
             } else {
-              Serial.print("File attempted to be opened: ");
-              Serial.println(&file_name_pointer[1]);
+              //Serial.print("File attempted to be opened: ");
+              //Serial.println(&file_name_pointer[1]);
               file_found = file.open(&file_name_pointer[1], O_RDONLY);
             }
 
@@ -137,7 +144,6 @@ void loop() {
               
               delete http_data;
               file_name_pointer = NULL;
-
               // Stream data from file
               http_handler.stream_text_file(&file);
 

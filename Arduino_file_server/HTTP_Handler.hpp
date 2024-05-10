@@ -11,6 +11,7 @@
 
 #define MAX_DATA_BUFFER_SIZE 255
 
+
 //All valid HTTP message types as well as unkown for ill- formated messages
 enum message_type : u8 {
     GET,        // No body, return has body, already implemented
@@ -39,6 +40,7 @@ struct header_data
 class Http_Request_Handler
 {
     public:
+
         Http_Request_Handler();
         ~Http_Request_Handler();
 
@@ -76,8 +78,6 @@ class Http_Request_Handler
         //Client the http handler will work with
         EthernetClient* current_client = NULL;
         
-        //All header types in one flash string to save memory space
-        static const char http_header_strings [] PROGMEM;        
 };
 
 

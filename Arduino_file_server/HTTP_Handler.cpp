@@ -18,8 +18,8 @@
 
 #define HEADER_STRINGS_TOTAL_LENGTH 45
 
-//All HTTP messages in a single string. Placed together like this to conserve both dynamic memory and time.
-const char Http_Request_Handler::http_header_strings[] PROGMEM = "GETPUTPOSTHEADPATCHTRACEDELETEOPTIONSCONNECT";
+//All HTTP messages in a single string. Placed together like this to conserve dynamic memory and time.
+const char http_header_strings[] PROGMEM = {"GETPUTPOSTHEADPATCHTRACEDELETEOPTIONSCONNECT"};
 
 Http_Request_Handler::Http_Request_Handler()
 {}
@@ -63,10 +63,13 @@ void Http_Request_Handler::stream_text_file(ExFatFile* data_stream) {
 
     char data[MAX_DATA_BUFFER_SIZE];
     int read_chars = 0;
-    do {
-        read_chars = data_stream->read(data, MAX_DATA_BUFFER_SIZE);
+
+    read_chars = data_stream->read(data, MAX_DATA_BUFFER_SIZE);
+
+    while (read_chars > 0) {
         current_client->write(data, read_chars);
-    } while (read_chars > 0);
+        read_chars = data_stream->read(data, MAX_DATA_BUFFER_SIZE);
+    }
 }
 
 void Http_Request_Handler::send_generic_server_error(const __FlashStringHelper *error) {
@@ -94,16 +97,17 @@ void Http_Request_Handler::send_text_header() {
     //Content-Type: text/html
     //Connection: close
     //
-    current_client->println(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
+    current_client->print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
 }
 
 message_type Http_Request_Handler::get_message_type(const char message_data[], const u16 message_length) {
     
     message_type ret = UNKOWN;
     
-    //Moves string from 
     char message_array[HEADER_STRINGS_TOTAL_LENGTH];
-    strcpy_P(message_array, (char *)pgm_read_ptr(http_header_strings));
+    for (byte k = 0; k < HEADER_STRINGS_TOTAL_LENGTH; k++) {
+        message_array[k] = pgm_read_byte_near(http_header_strings + k);
+    }
 
     //Sort out strings to different lengths to make it faster to go through possible message types
     switch (message_length) {
