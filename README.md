@@ -29,4 +29,4 @@ If you use Visual Studio Code, make sure to have the Arduino extention installed
 - Place the SD card into the Ethernet hat
 - Compile and run the project
 
-You should be able to access the SD card by typing the IP address into the search bar of your computer
+You should be able to access the file server webpage through typing the IP address of the server into your web browser.
