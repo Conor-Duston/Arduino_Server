@@ -69,7 +69,6 @@ void setup() {
     Serial.println(F("Cannot configure SD card"));
     sd.initErrorPrint(&Serial);
   }
-
   
 }
 
@@ -110,11 +109,10 @@ void loop() {
         
         // Serial.print(F("File Name: "));
         // Serial.println(file_name_pointer);
-
-        //Test to see if leading \n is part of file or not:
-        char data[MAX_DATA_BUFFER_SIZE];
-        int read_chars = 0;
         
+        int read_chars = 0;
+
+        const __FlashStringHelper *unsupported_action_msg = F("Unsuported action");        
 
         switch (header_data.type) {
           case GET:
@@ -153,56 +151,56 @@ void loop() {
           break;
 
           case HEAD:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case POST:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case PUT:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case DELETE:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case CONNECT:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case OPTIONS:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case TRACE:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case PATCH:
-            http_handler.send_generic_server_error(F("Unsuported action"));
+            http_handler.send_generic_server_error(unsupported_action_msg);
             delete http_data;
             file_name_pointer = NULL;
           break;
 
           case UNKOWN:
           default:
-            http_handler.send_generic_server_error(F("Unkown message type"));
+            http_handler.send_generic_server_error(F("Unkown or invalid message type"));
             delete http_data;
             file_name_pointer = NULL;
           break;
