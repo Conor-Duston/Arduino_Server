@@ -69,7 +69,6 @@ void setup() {
     Serial.println(F("Cannot configure SD card"));
     sd.initErrorPrint(&Serial);
   }
-  
 }
 
 void loop() {

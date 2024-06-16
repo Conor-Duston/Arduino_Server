@@ -75,8 +75,15 @@ class Http_Request_Handler
         message_type get_message_type(const char message_data[], const u16 message_length);
         
     private:
+        // Function to print headers open http docs for error info
+        void open_error_doc();
+        
+        // Function to close out http doc after error is printed
+        void close_error_doc();
+
         //Client the http handler will work with
         EthernetClient* current_client = NULL;
+        
         
 };
 

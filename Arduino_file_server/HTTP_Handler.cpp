@@ -4,6 +4,7 @@
 #include <SdFat.h>
 #include <Arduino.h>
 #include <string.h>
+#include <avr/pgmspace.h>
 
 //Indexes of message types found in HTTP headers
 #define GET_INDEX 0
@@ -16,10 +17,16 @@
 #define OPTIONS_INDEX 30
 #define CONNECT_INDEX 37
 
-#define HEADER_STRINGS_TOTAL_LENGTH 45
-
 //All HTTP messages in a single string. Placed together like this to conserve dynamic memory and time.
-const char http_header_strings[] PROGMEM = {"GETPUTPOSTHEADPATCHTRACEDELETEOPTIONSCONNECT"};
+static const char http_header_strings[] PROGMEM = {"GETPUTPOSTHEADPATCHTRACEDELETEOPTIONSCONNECT"};
+
+#define HEADER_BUFFER_SIZE 30
+
+//text/http content header. Here to preseve flash length
+static const char http_text_content[] PROGMEM = "Content-Type: text/html\r\n";
+
+//Closes conection to server and ends the Headers portion of the HTTP message
+static const char close_connection_end_header[] PROGMEM = "Connection: close\r\n\r\n";
 
 Http_Request_Handler::Http_Request_Handler()
 {}
@@ -76,19 +83,24 @@ void Http_Request_Handler::send_generic_server_error(const __FlashStringHelper *
     if (current_client == NULL) {
         return;
     }
-    current_client->print(F("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
+    current_client->print(F("HTTP/1.1 500 Internal Server Error\r\n"));
+    
+    open_error_doc();
     // Send info to user so that they are not left in dark
-    current_client->print(F("<!DOCTYPE html>\r\n<html><h1>"));
     current_client->print(error);
-    current_client->print(F("</h1></html>"));
-}
+
+    close_error_doc();
+}  
 
 void Http_Request_Handler::send_resource_not_found() {
     if (current_client == NULL) {
         return;
     }
-    current_client->print(F("HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
-    current_client->print(F("<!DOCTYPE html>\r\n<html><h1>File not found</h1></html>"));
+    current_client->print(F("HTTP/1.1 404 Not Found\r\n"));
+    
+    open_error_doc();
+    current_client->print(F("File not found"));
+    close_error_doc();
 }
 
 void Http_Request_Handler::send_text_header() {
@@ -97,17 +109,41 @@ void Http_Request_Handler::send_text_header() {
     //Content-Type: text/html
     //Connection: close
     //
-    current_client->print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"));
+    current_client->print(F("HTTP/1.1 200 OK\r\n"));
+    
+    char buffer[HEADER_BUFFER_SIZE];
+
+    strcpy_P(buffer, http_text_content);
+    current_client->print(buffer);
+    //Read final header line, send
+    strcpy_P(buffer, close_connection_end_header);
+    current_client->print(buffer);
+}
+
+void Http_Request_Handler::open_error_doc() {
+    char buffer[HEADER_BUFFER_SIZE];
+    //Read doc type from flash, send it
+    strcpy_P(buffer, http_text_content);
+    current_client->print(buffer);
+    //Read final header line, send
+    strcpy_P(buffer, close_connection_end_header);
+    current_client->print(buffer);
+    // Open error http doc
+    current_client->print(F("<!DOCTYPE html>\r\n<html><h1>"));
+}
+
+void Http_Request_Handler::close_error_doc() {
+
+    current_client->print(F("</h1></html>"));
+
 }
 
 message_type Http_Request_Handler::get_message_type(const char message_data[], const u16 message_length) {
     
     message_type ret = UNKOWN;
     
-    char message_array[HEADER_STRINGS_TOTAL_LENGTH];
-    for (byte k = 0; k < HEADER_STRINGS_TOTAL_LENGTH; k++) {
-        message_array[k] = pgm_read_byte_near(http_header_strings + k);
-    }
+    char message_array[strlen_P(http_header_strings)];
+    strcpy_P(message_array, http_header_strings);
 
     //Sort out strings to different lengths to make it faster to go through possible message types
     switch (message_length) {
@@ -151,6 +187,8 @@ message_type Http_Request_Handler::get_message_type(const char message_data[], c
     return ret;
 }
 
+
+
 void Http_Request_Handler::set_client(EthernetClient* client) {
     current_client = client;
 }
@@ -158,6 +196,8 @@ void Http_Request_Handler::set_client(EthernetClient* client) {
 void Http_Request_Handler::reset_client() {
     current_client = NULL;
 }
+
+
 // enum message_type {
 //     GET,
 //     HEAD,
