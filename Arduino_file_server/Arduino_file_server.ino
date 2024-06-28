@@ -22,6 +22,7 @@
 #include <SdFat.h>
 
 #include "HTTP_Handler.hpp"
+#include "File_Manager.hpp"
 
 // Server
 byte mac[] = {
@@ -129,14 +130,11 @@ void loop() {
                 } else {
                   http_handler.send_generic_server_error(F("File could not be opened"));
                 }
-                //Free data used by http header
-                ////delete data_buffer;
                 file_name_pointer = NULL;
                 break;
               
               } else {
                 
-                ////delete data_buffer;
                 file_name_pointer = NULL;
                 // Stream data from file
                 http_handler.stream_text_file(&file, data_buffer, DATA_BFFR_SIZE);
