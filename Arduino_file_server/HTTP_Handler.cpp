@@ -35,11 +35,12 @@ Http_Request_Handler::~Http_Request_Handler(){
     current_client = NULL;
 }
 
-header_data Http_Request_Handler::read_request(const byte* message_buffer, const u16 message_length) {
+header_data Http_Request_Handler::read_request(byte* const message_buffer, const u16 num_bytes_received) {
+    
     header_data message_data;
     u8 spaces_encountered = 0;
     
-    for (int i = 0; i < message_length; i++) {
+    for (int i = 0; i < num_bytes_received; i++) {
         //HTTP header changes at space character
         if (message_buffer[i] == ' ') {
             spaces_encountered ++;
@@ -49,33 +50,39 @@ header_data Http_Request_Handler::read_request(const byte* message_buffer, const
             case 1:
                 //Message type end, URI start
                 message_data.type = get_message_type((char*)message_buffer, i);
-                message_data.file_name_offset = i + 1;
-                break;
+                
+                //Test to make sure that file name is not offset to unpredictable location
+                if (i < num_bytes_received - 1) {
+                    message_data.file_name_offset = i + 1;
+                } else {
+                    //Break out due to failure to get file name in recieved bytes
+                    break;
+                }
+
+                continue;
             case 2:
                 //File resource end, resource start
                 message_data.file_name_length = i - message_data.file_name_offset;
-                //This is all we care about for now
-                return message_data;
+                break;
             }
+            break;
         }
-        
     }
-
     return message_data;
 }
 
-void Http_Request_Handler::stream_text_file(ExFatFile* data_stream) {
+
+void Http_Request_Handler::stream_text_file(ExFatFile* const data_stream, byte* const message_buffer, const u16 buffer_size) {
 
     send_text_header();
 
-    char data[MAX_DATA_BUFFER_SIZE];
     int read_chars = 0;
 
-    read_chars = data_stream->read(data, MAX_DATA_BUFFER_SIZE);
+    read_chars = data_stream->read(message_buffer, buffer_size);
 
     while (read_chars > 0) {
-        current_client->write(data, read_chars);
-        read_chars = data_stream->read(data, MAX_DATA_BUFFER_SIZE);
+        current_client->write(message_buffer, read_chars);
+        read_chars = data_stream->read(message_buffer, buffer_size);
     }
 }
 
