@@ -6,7 +6,13 @@
 // Load data into buffer from calling code using pgm_read_ptr or other methods as nessisary.
 #define PROGMEM_PNTR const char*
 
+// Structure containing pointers to adresses in program memory where the sub and super types are.
+struct mime_type {
+    PROGMEM_PNTR super_type;
+    PROGMEM_PNTR sub_type;
+};
+
 // Returns progam memory adress of appropriate mime type given file name.
-PROGMEM_PNTR get_file_mime_type(const char* file_name);
+mime_type get_file_mime_type(const char* file_name);
 
 #endif
