@@ -49,6 +49,9 @@ const uint8_t SD_CS_PIN = 4;
 
 byte data_buffer[DATA_BFFR_SIZE];
 
+//Need the slash to behave like it came from a client
+const char default_destination[] PROGMEM = "/index.html";
+
 void setup() {
   // put your setup code here, to run once:
   Ethernet.init(10);
@@ -115,14 +118,16 @@ void loop() {
           switch (header_data.type) {
             case GET:
               bool file_found;
-              if (header_data.file_name_length == 1) {
-                file_found = file.open("index.html", O_RDONLY);
-              } else {
-                //Serial.print("File attempted to be opened: ");
-                //Serial.println(&file_name_pointer[1]);
-                file_found = file.open(&file_name_pointer[1], O_RDONLY);
+
+              //Redirect length 1 and less queries (/) to landing page, or default destination
+              if (header_data.file_name_length <= 1) {
+                char file_name_array[sizeof(default_destination) / sizeof(char)];
+                strcpy(file_name_array, default_destination);
+                file_name_pointer = file_name_array;
               }
 
+              file_found = file.open(&file_name_pointer[1], O_RDONLY);
+              
               if (!file_found) {
                 if (!file.exists(&file_name_pointer[1])) {
                   //Return that file does not exist
@@ -134,8 +139,22 @@ void loop() {
                 break;
               
               } else {
+
+                mime_type file_type = get_file_mime_type(&file_name_pointer[1]);
                 
+                char mime_string[MAX_MIME_LENGTH];
+
+                strcpy_P(mime_string, file_type.super_type);
+
+                char* subtype_start = strchr(mime_string, '\0');
+
+                strcpy (subtype_start, file_type.sub_type);
+
+                Serial.print(F("File type requested: "));
+                Serial.println(mime_string);
+
                 file_name_pointer = NULL;
+                
                 // Stream data from file
                 http_handler.stream_text_file(&file, data_buffer, DATA_BFFR_SIZE);
 

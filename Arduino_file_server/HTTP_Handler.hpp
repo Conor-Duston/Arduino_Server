@@ -55,6 +55,8 @@ class Http_Request_Handler
         // 2000 ms down to 22 ms when choosing to use exfat file pointer rather than generic stream
         void stream_text_file(ExFatFile* const data_stream, byte* const message_buffer, const u16 buffer_size);
 
+        void stream_typed_file(ExFatFile* const file, byte* const message_buffet, const u16 buffer_size);
+
         //Sends generic server error for failures on server side stuff
         void send_generic_server_error(const __FlashStringHelper *error);
         
