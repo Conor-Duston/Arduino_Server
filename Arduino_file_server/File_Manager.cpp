@@ -2,6 +2,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <SPI.h>
+
 #include "File_Manager.hpp"
 
 // How MIME lookup is supposed to work:
@@ -262,6 +264,7 @@ const PROGMEM mime_lookup mime_lookup_table_special[] {
 #pragma endregion
 
 #pragma endregion
+
 const mime_type get_default_mime_type() {
     mime_type ret;
     
@@ -273,16 +276,36 @@ const mime_type get_default_mime_type() {
 
 mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned int table_size, 
                         const char* extension, const unsigned int extension_length) {
-    //Max extension length
-    char current_extension[5];
+    
     //Check every entry for level. If it exists, return that entries pointers, else return defualt.
-
     for (int i = 0; i < table_size; i++) {
-        strcpy_P(current_extension, (char*) pgm_read_ptr(mime_table_in_progmem[i].extention));
-        if (strncmp(extension, current_extension, extension_length) == 0) {
+        char temp[30];
+        
+        // Raw data: 3 pointers; 1 for extension type, 1 for super, 1 for sub
+        // All pointers are close pointers for now, be careful to not fill up progmem to much
+        PROGMEM_PNTR extension_pointer = (char *)pgm_read_ptr(&mime_table_in_progmem[i]);
+        
+        // strncpy_P(temp, extension_pointer, 10);
+        // Serial.println(temp);
+
+        if (strncmp_P(extension, extension_pointer, extension_length) == 0) {
+            // Declare mime_type for return
             mime_type ret;
-            ret.sub_type = (char*)pgm_read_ptr(mime_table_in_progmem->type.sub_type);
-            ret.super_type = (char*)pgm_read_ptr(mime_table_in_progmem->type.super_type);
+            // Set a pointer same length as short pointer to be the pointer to the table in memory
+            // Pointers are uint16_ts for short pointers, hence type here
+            uint16_t* temp_pntr = (uint16_t *)&mime_table_in_progmem[i];
+            // Read the pointer at the address plus 1
+            ret.super_type = (char*)pgm_read_ptr(++temp_pntr);
+            // Read pntr again plus 1 placement
+            ret.sub_type = (char*)pgm_read_ptr(++temp_pntr);
+            
+            // Check to be sure that the correct things are read
+            // strncpy_P(temp, ret.sub_type, 30);
+            // Serial.println(temp);
+
+            // strncpy_P(temp, ret.super_type, 30);
+            // Serial.println(temp);
+
             return ret;
         }
     }
@@ -291,10 +314,13 @@ mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned 
 
 }
 
+
 const mime_type get_file_mime_type(const char* file_name) {
     const char* file_extension = strrchr(file_name, '.');
     mime_type ret;
 
+    // Serial.print(F("File extension: "));
+    // Serial.println(&file_extension[1]);
 
     unsigned int ext_length = strlen(&file_extension[1]) + 1;
     // If the file extension is not found or the length is less than 2 (ts, the shortest recognized extension)
@@ -302,6 +328,8 @@ const mime_type get_file_mime_type(const char* file_name) {
     if (file_extension == NULL || ext_length < 3 || ext_length > 5) {
         return get_default_mime_type();
     }
+
+
 
     if (!isalpha(file_extension[1])) {
         return search_table(mime_lookup_table_special, sizeof(mime_lookup_table_special) / sizeof(mime_lookup),

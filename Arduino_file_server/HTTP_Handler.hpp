@@ -47,15 +47,15 @@ class Http_Request_Handler
         //Reads message from client, returns request type
         header_data read_request(byte* const message_buffer, const u16 num_bytes_recieved );
         
-        //TODO: Implement this method
-        void send_data(const byte data[], const int num_size);
-        
         // Streams data from exFat File, tells client that it is a text file
         // Not generic for speed increase - testing revieled that a small text file goes down from 
         // 2000 ms down to 22 ms when choosing to use exfat file pointer rather than generic stream
-        void stream_text_file(ExFatFile* const data_stream, byte* const message_buffer, const u16 buffer_size);
+        void stream_text_file(ExFatFile* const data_stream, byte* message_buffer, const u16 buffer_size);
 
-        void stream_typed_file(ExFatFile* const file, byte* const message_buffet, const u16 buffer_size);
+        // Streams fata from exFat file, telling client that it is a file of type mime_type. See stream_text_file
+        // for explination of why the generic type is not chosen.
+        void stream_typed_file(ExFatFile* const file, byte* message_buffer, const u16 buffer_size, 
+                                const char* mime_type);
 
         //Sends generic server error for failures on server side stuff
         void send_generic_server_error(const __FlashStringHelper *error);
@@ -70,9 +70,12 @@ class Http_Request_Handler
         void reset_client();
 
     protected:
-        //Send the HTTP header for text and html documents
-        void send_text_header();
+        //Send the HTTP header for html documents
+        void send_html_header();
         
+        //Sends the content header of type content_type
+        void send_content_type_header(const char* const content_type);
+
         //Gets the message type from an HTTP header
         message_type get_message_type(const char message_data[], const u16 message_length);
         

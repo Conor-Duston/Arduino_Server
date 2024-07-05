@@ -121,10 +121,13 @@ void loop() {
 
               //Redirect length 1 and less queries (/) to landing page, or default destination
               if (header_data.file_name_length <= 1) {
-                char file_name_array[sizeof(default_destination) / sizeof(char)];
-                strcpy(file_name_array, default_destination);
+                char file_name_array[strlen_P(default_destination)];
+                strcpy_P(file_name_array, default_destination);
                 file_name_pointer = file_name_array;
               }
+              
+              // Serial.print("file: ");
+              // Serial.println(&file_name_pointer[1]);
 
               file_found = file.open(&file_name_pointer[1], O_RDONLY);
               
@@ -146,12 +149,10 @@ void loop() {
 
                 strcpy_P(mime_string, file_type.super_type);
 
-                char* subtype_start = strchr(mime_string, '\0');
+                strcat_P(mime_string, file_type.sub_type);
 
-                strcpy (subtype_start, file_type.sub_type);
-
-                Serial.print(F("File type requested: "));
-                Serial.println(mime_string);
+                // Serial.print(F("File type requested: "));
+                // Serial.println(mime_string);
 
                 file_name_pointer = NULL;
                 

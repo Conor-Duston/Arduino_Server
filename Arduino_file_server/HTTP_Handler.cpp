@@ -17,13 +17,16 @@
 #define OPTIONS_INDEX 30
 #define CONNECT_INDEX 37
 
-//All HTTP messages in a single string. Placed together like this to conserve dynamic memory and time.
+//All HTTP messages in a single string. Placed together like this to conserve dynamic memory
 static const char http_header_strings[] PROGMEM = {"GETPUTPOSTHEADPATCHTRACEDELETEOPTIONSCONNECT"};
 
 #define HEADER_BUFFER_SIZE 30
 
-//text/http content header. Here to preseve flash length
-static const char http_text_content[] PROGMEM = "Content-Type: text/html\r\n";
+//Content type header. Here to preseve dynamic memory size
+static const char content_type_section[] PROGMEM = "Content-Type: ";
+
+//Default type for html web pages
+static const char html_web_page_type[] PROGMEM = "text/html";
 
 //Closes conection to server and ends the Headers portion of the HTTP message
 static const char close_connection_end_header[] PROGMEM = "Connection: close\r\n\r\n";
@@ -72,9 +75,9 @@ header_data Http_Request_Handler::read_request(byte* const message_buffer, const
 }
 
 
-void Http_Request_Handler::stream_text_file(ExFatFile* const data_stream, byte* const message_buffer, const u16 buffer_size) {
+void Http_Request_Handler::stream_text_file(ExFatFile* const data_stream, byte* message_buffer, const u16 buffer_size) {
 
-    send_text_header();
+    send_html_header();
 
     int read_chars = 0;
 
@@ -84,6 +87,12 @@ void Http_Request_Handler::stream_text_file(ExFatFile* const data_stream, byte* 
         current_client->write(message_buffer, read_chars);
         read_chars = data_stream->read(message_buffer, buffer_size);
     }
+}
+
+void Http_Request_Handler::stream_typed_file(ExFatFile* const file, byte* message_buffer, const u16 buffer_size, 
+                                const char * mime_type) {
+    
+
 }
 
 void Http_Request_Handler::send_generic_server_error(const __FlashStringHelper *error) {
@@ -110,7 +119,15 @@ void Http_Request_Handler::send_resource_not_found() {
     close_error_doc();
 }
 
-void Http_Request_Handler::send_text_header() {
+void Http_Request_Handler::send_html_header() {
+    
+    char html_MIME_type[HEADER_BUFFER_SIZE];
+
+    strcpy_P(html_MIME_type, html_web_page_type);
+    send_content_type_header(html_MIME_type);
+}
+
+void Http_Request_Handler::send_content_type_header(const char * content_type) {
     //Message Header:
     //HTTP Status 200 OK
     //Content-Type: text/html
@@ -120,9 +137,14 @@ void Http_Request_Handler::send_text_header() {
     
     char buffer[HEADER_BUFFER_SIZE];
 
-    strcpy_P(buffer, http_text_content);
+    //Copy content type header line into current context, send
+    strcpy_P(buffer, content_type_section);
     current_client->print(buffer);
-    //Read final header line, send
+    
+    //Send content type and end line
+    current_client->println(content_type);
+
+    //Copy close connection and end header line into current context, send
     strcpy_P(buffer, close_connection_end_header);
     current_client->print(buffer);
 }
@@ -130,8 +152,12 @@ void Http_Request_Handler::send_text_header() {
 void Http_Request_Handler::open_error_doc() {
     char buffer[HEADER_BUFFER_SIZE];
     //Read doc type from flash, send it
-    strcpy_P(buffer, http_text_content);
+    strcpy_P(buffer, content_type_section);
     current_client->print(buffer);
+    //Print HTML webpage type, close file
+    strcpy_P(buffer, html_web_page_type);
+    current_client->println(buffer);
+
     //Read final header line, send
     strcpy_P(buffer, close_connection_end_header);
     current_client->print(buffer);
@@ -140,7 +166,7 @@ void Http_Request_Handler::open_error_doc() {
 }
 
 void Http_Request_Handler::close_error_doc() {
-
+    //Close out the end of the error doc by closing the headers
     current_client->print(F("</h1></html>"));
 
 }
