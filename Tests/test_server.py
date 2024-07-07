@@ -70,8 +70,3 @@ def test_delete():
     return
     res = requests.delete(ARDUINO_URL + 'test_file')
 
-
-
-#Test function to make sure supported mime types are correctly returned.
-def test_mime_type():
-    return
