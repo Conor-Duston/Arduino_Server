@@ -76,8 +76,7 @@ const char rich_text_ext[] PROGMEM = "rtf";
 // s
 const char svg_ext[] PROGMEM = "svg";
 // t
-const char txt_shrt_ext[] PROGMEM = "txt";
-const char text_lng_ext[] PROGMEM = "text";
+const char txt_ext[] PROGMEM = "txt";
 // u
 // v
 // w
@@ -240,9 +239,7 @@ const PROGMEM mime_lookup mime_lookup_table_s[] {
 };
 
 const PROGMEM mime_lookup mime_lookup_table_t[] {
-    {text_lng_ext, {text_super, text_subtype}},
-    {txt_shrt_ext, {text_super, text_subtype}},
-
+    {txt_ext, {text_super, text_subtype}},
 };
 
 const PROGMEM mime_lookup mime_lookup_table_w[] {

@@ -1,0 +1,11 @@
+{
+    "type" : "server",
+    "children" : "none",
+    "Test" : "true",
+    "temperatures" : [
+        "98.6",
+        "72",
+        "32",
+        "-40" 
+    ]
+}
