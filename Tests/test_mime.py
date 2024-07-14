@@ -42,7 +42,6 @@ mime_type_dictionary : dict = {
 
     "svg" : image_super + "svg+xml",
 
-    "text" : text_super + "plain",
     "txt" : text_super + "plain",
 
     "wav" : audio_super + "wav",
