@@ -91,8 +91,16 @@ void Http_Request_Handler::stream_text_file(ExFatFile* const data_stream, byte* 
 
 void Http_Request_Handler::stream_typed_file(ExFatFile* const file, byte* message_buffer, const u16 buffer_size, 
                                 const char * mime_type) {
-    
+    send_content_type_header(mime_type);
 
+    int read_chars = 0;
+
+    read_chars = file->read(message_buffer, buffer_size);
+
+    while (read_chars > 0) {
+        current_client->write(message_buffer, read_chars);
+        read_chars = file->read(message_buffer, buffer_size);
+    }
 }
 
 void Http_Request_Handler::send_generic_server_error(const __FlashStringHelper *error) {

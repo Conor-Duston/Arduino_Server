@@ -28,7 +28,7 @@ mime_type_dictionary : dict = {
     "ico" : image_super + "vnd.microsoft.ico",
 
     "jpeg": image_super + "jpeg",
-    "jpg" : image_super + "jpg",
+    "jpg" : image_super + "jpeg",
     "js" : text_super + "javascript",
     "json" : application_super + "json",
 
@@ -57,7 +57,7 @@ mime_type_dictionary : dict = {
 
 #Test mime type retrieval
 def test_mime_and_file_retrevial():
-    #Get pathway to same page in storage
+    # Get pathway to same page in storage
     abs_path : str = path.dirname(__file__)
     print(abs_path)
     rel_path : str = ".\Test_Files"
@@ -65,7 +65,7 @@ def test_mime_and_file_retrevial():
 
     files : list[str] = [f for f in listdir(full_path) if path.isfile(path.join(full_path, f))]
 
-    print(files)
+    # print(files)
 
     for file in files:
         response = requests.get(ARDUINO_URL + file)
@@ -78,8 +78,7 @@ def test_mime_and_file_retrevial():
         
         actual_MIME : str = response.headers["Content-Type"]
 
-        assert expected_MIME == actual_MIME, "Expected MIME: " + expected_MIME + "\n"
-        "Got MIME: " + actual_MIME
+        assert expected_MIME == actual_MIME, "Expected MIME: " + expected_MIME + "\n" + "Got MIME: " + actual_MIME + "\n File Extension" + file_extension
 
         with io.open(path.join(full_path, file), "rb") as stored_file:
             expected_bytes : bytes = stored_file.read()

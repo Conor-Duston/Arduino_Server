@@ -151,13 +151,13 @@ void loop() {
 
                 strcat_P(mime_string, file_type.sub_type);
 
-                // Serial.print(F("File type requested: "));
-                // Serial.println(mime_string);
+                Serial.print(F("File type requested: "));
+                Serial.println(mime_string);
 
                 file_name_pointer = NULL;
                 
                 // Stream data from file
-                http_handler.stream_text_file(&file, data_buffer, DATA_BFFR_SIZE);
+                http_handler.stream_typed_file(&file, data_buffer, DATA_BFFR_SIZE, mime_string);
 
                 file.close();
               }
