@@ -1,0 +1,7 @@
+Step 0: Modify code to work with arduino board and ethernet hat, if they exist.
+
+Step 1: Take SD card from hat, plug it into the computer, and copy all files from Test_Files and Webpage to SD card
+
+Step 2: Put SD card back into hat and reset the arduino.
+
+Step 3: Run "pytest" comand in Tests folder. All tests should pass.

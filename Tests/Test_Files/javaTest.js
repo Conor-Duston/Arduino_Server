@@ -1,0 +1,1 @@
+//This Javascript file does nothing for now, is just for testing code

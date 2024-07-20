@@ -1,0 +1,5 @@
+/* This file is currently only used for testing CSS files, nothing else*/
+html {
+    height: 100;
+    border: 1em;
+}

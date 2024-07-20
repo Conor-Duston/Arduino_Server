@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1920"
+   height="1084"
+   viewBox="0 0 1920 1084"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1">
+    <rect
+       style="fill:#ff0000;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect1"
+       width="192"
+       height="1080"
+       x="4.374653e-07"
+       y="0" />
+    <rect
+       style="fill:#000080;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect2"
+       width="192"
+       height="1080"
+       x="192"
+       y="0" />
+    <rect
+       style="fill:#800080;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect4"
+       width="192"
+       height="1080"
+       x="576"
+       y="0" />
+    <path
+       id="rect3"
+       style="fill:#008000;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       d="m 382,2 c 0,360.66667 0,721.3333 0,1082 65.33333,0 130.66667,0 196,0 0,-361.3333 0,-722.66667 0,-1084 -65.33333,0 -130.66667,0 -196,0 0,0.66667 0,1.33333 0,2 z" />
+    <rect
+       style="fill:#000080;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect7"
+       width="192"
+       height="1080"
+       x="1152"
+       y="0" />
+    <path
+       id="rect9"
+       style="fill:#800080;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       d="m 1534,2 c 0,360.66667 0,721.3333 0,1082 65.3333,0 130.6667,0 196,0 0,-361.3333 0,-722.66667 0,-1084 -65.3333,0 -130.6667,0 -196,0 0,0.66667 0,1.33333 0,2 z" />
+    <rect
+       style="fill:#ff0000;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect6"
+       width="192"
+       height="1080"
+       x="960"
+       y="0" />
+    <rect
+       style="fill:#008000;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect8"
+       width="192"
+       height="1080"
+       x="1344"
+       y="0" />
+    <rect
+       style="fill:#ffff00;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect10"
+       width="192"
+       height="1080"
+       x="1728"
+       y="0" />
+    <rect
+       style="fill:#ffff00;fill-opacity:0.973621;stroke-width:0.901466;paint-order:markers stroke fill"
+       id="rect5"
+       width="192"
+       height="1080"
+       x="768"
+       y="0" />
+  </g>
+</svg>
