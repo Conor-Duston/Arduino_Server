@@ -11,6 +11,32 @@
         <ul>
 
         </ul>
+        <input type="file" id="file_select" multiple />
+        <button onclick="upload()" >Upload Selected Files</button>
+        <script>
+            const max_bytes = 100000
+
+            function upload() {
+                let files = document.getElementById("file_select").files;
+                let num_bytes = 0;
+                
+
+                for (const file of files) {
+                    num_bytes += file.size;
+                    alert(file.name);
+                }
+
+                if (num_bytes > max_bytes) {
+                    alert("Number of bytes exceeds max number of bytes that can be upload");
+                    return;
+                }
+
+                for (const file of files) {
+                    
+                }
+            }
+        
+        </script>
     </body>
 </html>
 
