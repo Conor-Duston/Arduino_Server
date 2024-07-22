@@ -196,30 +196,30 @@ message_type Http_Request_Handler::get_message_type(const char message_data[], c
             }
         break;
         case 4:
-            if (strncmp(message_data, &(message_array[POST_INDEX]), message_length)) {
+            if (strncmp(message_data, &(message_array[POST_INDEX]), message_length) == 0) {
                 ret = POST;
-            } else if (strncmp(message_data, &(message_array[HEAD_INDEX]), message_length)) {
+            } else if (strncmp(message_data, &(message_array[HEAD_INDEX]), message_length) == 0) {
                 ret = HEAD;
             }
         break;
         case 5:
-            if (strncmp(message_data, &(message_array[TRACE_INDEX]), message_length)) {
+            if (strncmp(message_data, &(message_array[TRACE_INDEX]), message_length) == 0) {
                 ret = TRACE;
-            } else if (strncmp(message_data, &(message_array[PATCH_INDEX]), message_length)) {
+            } else if (strncmp(message_data, &(message_array[PATCH_INDEX]), message_length) == 0) {
                 ret = PATCH;
             }
         break;
 
         case 6:
-            if (strncmp(message_data, &(message_array[DELETE_INDEX]), message_length)) {
+            if (strncmp(message_data, &(message_array[DELETE_INDEX]), message_length) == 0) {
                 ret = DELETE;
             }
         break;
         
         case 7:
-            if (strncmp(message_data, &(message_array[OPTIONS_INDEX]), message_length)) {
+            if (strncmp(message_data, &(message_array[OPTIONS_INDEX]), message_length) == 0) {
                 ret = OPTIONS;
-            } if (strncmp(message_data, &(message_array[CONNECT_INDEX]), message_length)) {
+            } if (strncmp(message_data, &(message_array[CONNECT_INDEX]), message_length) == 0 ) {
                 ret = CONNECT;
             }
         break;

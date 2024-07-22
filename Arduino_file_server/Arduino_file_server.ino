@@ -88,28 +88,30 @@ void loop() {
      while (client.connected()) {
         if (client.available()) {
           
-          u16 num_bytes_read = client.read(data_buffer, DATA_BFFR_SIZE);
-
+          u16 num_bytes_read = client.read(data_buffer, DATA_BFFR_SIZE - 1);
+          
           header_data header_data = http_handler.read_request(data_buffer, num_bytes_read);
-          // Serial.write((char*)data_buffer);
+          data_buffer[num_bytes_read] = '\0';
+          
+          Serial.write((char*)data_buffer);
 
-          // Serial.print(F("Message Type: "));
-          // Serial.println(header_data.type);
+          Serial.print(F("Message Type: "));
+          Serial.println(header_data.type);
 
-          // // RI stands for Resource Identifier, aka file name
-          // Serial.print(F("RI length: "));
-          // Serial.println(header_data.file_name_length);
+          // RI stands for Resource Identifier, aka file name
+          Serial.print(F("RI length: "));
+          Serial.println(header_data.file_name_length);
 
-          // Serial.print(F("RI Offset: "));
-          // Serial.println(header_data.file_name_offset);
+          Serial.print(F("RI Offset: "));
+          Serial.println(header_data.file_name_offset);
 
-          // Serial.print(F("RI: "));
+          Serial.print(F("RI: "));
 
           data_buffer[header_data.file_name_offset + header_data.file_name_length] = '\0';
           char* file_name_pointer = (char*)&data_buffer[header_data.file_name_offset];
           
-          // Serial.print(F("File Name: "));
-          // Serial.println(file_name_pointer);
+          Serial.print(F("File Name: "));
+          Serial.println(file_name_pointer);
           
           int read_chars = 0;
           
@@ -151,8 +153,8 @@ void loop() {
 
                 strcat_P(mime_string, file_type.sub_type);
 
-                Serial.print(F("File type requested: "));
-                Serial.println(mime_string);
+                // Serial.print(F("File type requested: "));
+                // Serial.println(mime_string);
 
                 file_name_pointer = NULL;
                 
@@ -171,6 +173,14 @@ void loop() {
             break;
 
             case POST:
+
+              if (header_data.file_name_length < 2) {
+                http_handler.send_generic_server_error(unsupported_action_msg);
+                break;
+              }
+              
+              //Serial.write("Post Message received");
+
               http_handler.send_generic_server_error(unsupported_action_msg);
               ////delete data_buffer;
               file_name_pointer = NULL;
