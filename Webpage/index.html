@@ -16,7 +16,7 @@
         <script>
             const max_bytes = 100000
 
-            function upload() {
+            async function upload() {
                 let files = document.getElementById("file_select").files;
                 let num_bytes = 0;
                 
@@ -30,8 +30,18 @@
                     alert("Number of bytes exceeds max number of bytes that can be upload");
                     return;
                 }
-
+                
                 for (const file of files) {
+                    let form = new FormData();
+
+                    form.append("file", file)
+
+                    try {
+                        let res = await fetch('/' + file.name, {method: "POST", body: form} );
+
+                    } catch {
+                        return;
+                    }
                     
                 }
             }
