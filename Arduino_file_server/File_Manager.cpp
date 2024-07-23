@@ -7,8 +7,8 @@
 #include "File_Manager.hpp"
 
 // How MIME lookup is supposed to work:
-// load lookup array and the corisponding mime_type array to memory based on length and first letter of extension
-// look for mime type corrsiponding to extension using index of mime_type. If it exists, return that extension, else return ocet type for download.
+// load lookup array and the corrsponding mime_type array to memory based on length and first letter of extension
+// look for mime type corrsponding to extension using index of mime_type. If it exists, return that extension, else return octet type for download.
 
 struct mime_lookup
 {
@@ -190,7 +190,7 @@ const char zip7_subtype[] PROGMEM = "x-7z-compressed";
 
 const PROGMEM mime_type default_mime_type {application_super, default_subtype};
 
-// Lookup tables for varios extention types
+// Lookup tables for various extention types
 const PROGMEM mime_lookup mime_lookup_table_a[] {
     {aac_audio_ext, {audio_super, aac_audio_subtype}}
 };
@@ -274,7 +274,7 @@ const mime_type get_default_mime_type() {
 mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned int table_size, 
                         const char* extension, const unsigned int extension_length) {
     
-    //Check every entry for level. If it exists, return that entries pointers, else return defualt.
+    //Check every entry for level. If it exists, return that entries pointers, else return default.
     for (int i = 0; i < table_size; i++) {
         char temp[30];
         
@@ -321,7 +321,7 @@ const mime_type get_file_mime_type(const char* file_name) {
 
     unsigned int ext_length = strlen(&file_extension[1]) + 1;
     // If the file extension is not found or the length is less than 2 (ts, the shortest recognized extension)
-    // Return the defualt type
+    // Return the default type
     if (file_extension == NULL || ext_length < 3 || ext_length > 5) {
         return get_default_mime_type();
     }

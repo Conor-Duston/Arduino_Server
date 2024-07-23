@@ -13,7 +13,7 @@ video_super : str = "video/"
 application_super : str = "application/"
 font_super : str = "font/"
 
-#Mime type dictionary for looking up the mime type corrisponding to specific file extensions
+#Mime type dictionary for looking up the mime type corresponding to specific file extensions
 mime_type_dictionary : dict = {
     "aac": audio_super + "aac",
     
@@ -56,7 +56,7 @@ mime_type_dictionary : dict = {
 }
 
 #Test mime type retrieval
-def test_mime_and_file_retrevial():
+def test_mime_and_file_retrieval():
     # Get pathway to same page in storage
     abs_path : str = path.dirname(__file__)
     print(abs_path)
@@ -83,4 +83,4 @@ def test_mime_and_file_retrevial():
         with io.open(path.join(full_path, file), "rb") as stored_file:
             expected_bytes : bytes = stored_file.read()
 
-            assert expected_bytes == response.content, "Received different or corupt file for " + file
+            assert expected_bytes == response.content, "Received different or corrupt file for " + file

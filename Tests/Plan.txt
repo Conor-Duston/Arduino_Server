@@ -1,8 +1,8 @@
 Tests needed:
 
 Server needs:
-- Get - retreive correct files - Testing with homepage completed
-- Put - Insertes correct file, then Get works 
+- Get - retrieve correct files - Testing with homepage completed
+- Put - Inserts correct file, then Get works 
 - Delete - Removes only user files, not get files
 
 - Chunking - Need to be able to handle files in small chunks due to memory constraints
@@ -13,7 +13,7 @@ Server needs:
 Validation:
 - Overly long headers ignored
 - Modifying or removing files needed for server does not work
-- Server will not accept uris that are too long, and URIS that are to long will lead to unprecitable behavior
+- Server will not accept uris that are too long, and URIS that are to long will lead to unpredictable behavior
 
 Client needs:
 - Adding and removing file from server works

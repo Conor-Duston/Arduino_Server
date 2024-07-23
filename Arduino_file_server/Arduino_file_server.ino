@@ -29,7 +29,7 @@ byte mac[] = {
   0xA8, 0x61, 0x0A, 0xAF, 0x01, 0xFF
 };
 
-// Note: 10.0.0.x Ip adresses work
+// Note: 10.0.0.x Ip addresses work
 IPAddress ip(10, 0, 0, 2);
 
 EthernetServer server(80);
@@ -115,7 +115,7 @@ void loop() {
           
           int read_chars = 0;
           
-          const __FlashStringHelper *unsupported_action_msg = F("Unsuported action");
+          const __FlashStringHelper *unsupported_action_msg = F("Unsupported action");
 
           switch (header_data.type) {
             case GET:

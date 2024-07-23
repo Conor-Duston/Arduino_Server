@@ -12,7 +12,7 @@
 #define MAX_DATA_BUFFER_SIZE 255
 
 
-//All valid HTTP message types as well as unkown for ill- formated messages
+//All valid HTTP message types as well as unkown for ill- formatted messages
 enum message_type : u8 {
     GET,        // No body, return has body, already implemented
     HEAD,       // No body, return does not have body, returns header fields for GET method
@@ -34,8 +34,8 @@ struct header_data
     u16 file_name_length = 0;
 };
 
-// Http_Request_Handler is the class for handeling http message protocals
-// This includes extracting data from http messages recieved by the arduino
+// Http_Request_Handler is the class for handling http message protocols
+// This includes extracting data from http messages received by the arduino
 // and adding header to send information from the arduino to the client 
 class Http_Request_Handler
 {
@@ -45,15 +45,15 @@ class Http_Request_Handler
         ~Http_Request_Handler();
 
         //Reads message from client, returns request type
-        header_data read_request(byte* const message_buffer, const u16 num_bytes_recieved );
+        header_data read_request(byte* const message_buffer, const u16 num_bytes_received );
         
         // Streams data from exFat File, tells client that it is a text file
-        // Not generic for speed increase - testing revieled that a small text file goes down from 
+        // Not generic for speed increase - testing reveled that a small text file goes down from 
         // 2000 ms down to 22 ms when choosing to use exfat file pointer rather than generic stream
         void stream_text_file(ExFatFile* const data_stream, byte* message_buffer, const u16 buffer_size);
 
-        // Streams fata from exFat file, telling client that it is a file of type mime_type. See stream_text_file
-        // for explination of why the generic type is not chosen.
+        // Streams data from exFat file, telling client that it is a file of type mime_type. See stream_text_file
+        // for explanation of why the generic type is not chosen.
         void stream_typed_file(ExFatFile* const file, byte* message_buffer, const u16 buffer_size, 
                                 const char* mime_type);
 

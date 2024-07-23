@@ -28,7 +28,7 @@ static const char content_type_section[] PROGMEM = "Content-Type: ";
 //Default type for html web pages
 static const char html_web_page_type[] PROGMEM = "text/html";
 
-//Closes conection to server and ends the Headers portion of the HTTP message
+//Closes connection to server and ends the Headers portion of the HTTP message
 static const char close_connection_end_header[] PROGMEM = "Connection: close\r\n\r\n";
 
 Http_Request_Handler::Http_Request_Handler()
@@ -58,7 +58,7 @@ header_data Http_Request_Handler::read_request(byte* const message_buffer, const
                 if (i < num_bytes_received - 1) {
                     message_data.file_name_offset = i + 1;
                 } else {
-                    //Break out due to failure to get file name in recieved bytes
+                    //Break out due to failure to get file name in received bytes
                     break;
                 }
 

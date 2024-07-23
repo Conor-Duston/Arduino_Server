@@ -4,4 +4,4 @@ Step 1: Take SD card from hat, plug it into the computer, and copy all files fro
 
 Step 2: Put SD card back into hat and reset the arduino.
 
-Step 3: Run "pytest" comand in Tests folder. All tests should pass.
+Step 3: Run "pytest" command in Tests folder. All tests should pass.
