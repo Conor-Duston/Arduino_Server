@@ -77,6 +77,8 @@ void setup() {
   }
 }
 
+void stream_file(char* file_name, u16 file_length);
+
 void loop() {
   
   EthernetClient client = server.available();
@@ -93,76 +95,34 @@ void loop() {
           header_data header_data = http_handler.read_request(data_buffer, num_bytes_read);
           data_buffer[num_bytes_read] = '\0';
           
-          Serial.write((char*)data_buffer);
+          // Serial.write((char*)data_buffer);
 
-          Serial.print(F("Message Type: "));
-          Serial.println(header_data.type);
+          // Serial.print(F("Message Type: "));
+          // Serial.println(header_data.type);
 
-          // RI stands for Resource Identifier, aka file name
-          Serial.print(F("RI length: "));
-          Serial.println(header_data.file_name_length);
+          // // RI stands for Resource Identifier, aka file name
+          // Serial.print(F("RI length: "));
+          // Serial.println(header_data.file_name_length);
 
-          Serial.print(F("RI Offset: "));
-          Serial.println(header_data.file_name_offset);
+          // Serial.print(F("RI Offset: "));
+          // Serial.println(header_data.file_name_offset);
 
-          Serial.print(F("RI: "));
+          // Serial.print(F("RI: "));
 
           data_buffer[header_data.file_name_offset + header_data.file_name_length] = '\0';
           char* file_name_pointer = (char*)&data_buffer[header_data.file_name_offset];
           
-          Serial.print(F("File Name: "));
-          Serial.println(file_name_pointer);
+          // Serial.print(F("File Name Requested: "));
+          // Serial.println(file_name_pointer);
           
-          int read_chars = 0;
-          
+         
+
           const __FlashStringHelper *unsupported_action_msg = F("Unsupported action");
 
           switch (header_data.type) {
             case GET:
-              bool file_found;
-
-              //Redirect length 1 and less queries (/) to landing page, or default destination
-              if (header_data.file_name_length <= 1) {
-                char file_name_array[strlen_P(default_destination)];
-                strcpy_P(file_name_array, default_destination);
-                file_name_pointer = file_name_array;
-              }
               
-              // Serial.print("file: ");
-              // Serial.println(&file_name_pointer[1]);
-
-              file_found = file.open(&file_name_pointer[1], O_RDONLY);
-              
-              if (!file_found) {
-                if (!file.exists(&file_name_pointer[1])) {
-                  //Return that file does not exist
-                  http_handler.send_resource_not_found();
-                } else {
-                  http_handler.send_generic_server_error(F("File could not be opened"));
-                }
-                file_name_pointer = NULL;
-                break;
-              
-              } else {
-
-                mime_type file_type = get_file_mime_type(&file_name_pointer[1]);
-                
-                char mime_string[MAX_MIME_LENGTH];
-
-                strcpy_P(mime_string, file_type.super_type);
-
-                strcat_P(mime_string, file_type.sub_type);
-
-                // Serial.print(F("File type requested: "));
-                // Serial.println(mime_string);
-
-                file_name_pointer = NULL;
-                
-                // Stream data from file
-                http_handler.stream_typed_file(&file, data_buffer, DATA_BFFR_SIZE, mime_string);
-
-                file.close();
-              }
+              stream_file(file_name_pointer, header_data.file_name_length);
 
             break;
 
@@ -236,5 +196,53 @@ void loop() {
         client.stop();
         Serial.println(F("client disconnected"));
      }
+  }
+}
+
+void stream_file(char* file_name, u16 file_length) {
+  //int read_chars = 0;
+  char file_name_array[strlen_P(default_destination)];
+  char *file_name_pointer = file_name;
+
+  if (file_length < 2) {
+    strcpy_P(file_name_array, default_destination);
+    file_name_pointer = file_name_array;
+  }
+  
+  
+  //Serial.print(F("file: "));
+  //Serial.println(file_name_pointer);
+
+  bool file_found;
+  file_found = file.open(file_name_pointer, O_RDONLY);
+  //Serial.println(F("File Open attempt"));
+
+  if (!file_found) {
+    //Serial.println(F("File not found"));
+    if (!file.exists(file_name_pointer)) {
+      //Return that file does not exist
+      http_handler.send_resource_not_found();
+    } else {
+      http_handler.send_generic_server_error(F("File could not be opened"));
+    }
+    return;
+  
+  } else {
+    //Serial.print(F("Mime type reached"));
+    mime_type file_type = get_file_mime_type(file_name_pointer);
+    
+    char mime_string[MAX_MIME_LENGTH];
+
+    strcpy_P(mime_string, file_type.super_type);
+
+    strcat_P(mime_string, file_type.sub_type);
+
+    //Serial.print(F("Mime type requested: "));
+    Serial.println(mime_string);
+    
+    // Stream data from file
+    http_handler.stream_typed_file(&file, data_buffer, DATA_BFFR_SIZE, mime_string);
+
+    file.close();
   }
 }

@@ -257,9 +257,6 @@ const PROGMEM mime_lookup mime_lookup_table_special[] {
     {zip7_ext, {application_super, zip7_subtype}}
 };
 
-
-#pragma endregion
-
 #pragma endregion
 
 const mime_type get_default_mime_type() {
@@ -285,7 +282,7 @@ mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned 
         // strncpy_P(temp, extension_pointer, 10);
         // Serial.println(temp);
 
-        if (strncmp_P(extension, extension_pointer, extension_length) == 0) {
+        if (strncasecmp_P(extension, extension_pointer, extension_length) == 0) {
             // Declare mime_type for return
             mime_type ret;
             // Set a pointer same length as short pointer to be the pointer to the table in memory
@@ -314,7 +311,6 @@ mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned 
 
 const mime_type get_file_mime_type(const char* file_name) {
     const char* file_extension = strrchr(file_name, '.');
-    mime_type ret;
 
     // Serial.print(F("File extension: "));
     // Serial.println(&file_extension[1]);
@@ -332,7 +328,10 @@ const mime_type get_file_mime_type(const char* file_name) {
         return search_table(mime_lookup_table_special, sizeof(mime_lookup_table_special) / sizeof(mime_lookup),
         &file_extension[1], ext_length);
     }
-    switch (file_extension[1])
+
+    char file_extension_select = toLowerCase(file_extension[1]);
+
+    switch (file_extension_select)
     {
     case 'a':
         return search_table(mime_lookup_table_a, sizeof(mime_lookup_table_a) / sizeof(mime_lookup), 
