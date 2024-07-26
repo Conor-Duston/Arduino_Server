@@ -23,6 +23,7 @@
 
 #include "HTTP_Handler.hpp"
 #include "File_Manager.hpp"
+#include "Multipart_Upload_Handler.hpp"
 
 // Server
 byte mac[] = {
@@ -41,6 +42,9 @@ boolean sd_working;
 
 //Request Handling
 Http_Request_Handler http_handler;
+
+//Multipart form parsing
+Multipart_Upload_Handler temp;
 
 const uint8_t SD_CS_PIN = 4;
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI)
