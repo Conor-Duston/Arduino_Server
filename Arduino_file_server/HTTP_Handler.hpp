@@ -11,7 +11,6 @@
 
 #define MAX_DATA_BUFFER_SIZE 255
 
-
 //All valid HTTP message types as well as unkown for ill- formatted messages
 enum message_type : u8 {
     GET,        // No body, return has body, already implemented

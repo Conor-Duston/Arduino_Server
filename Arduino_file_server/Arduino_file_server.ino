@@ -113,7 +113,8 @@ void loop() {
 
           // Serial.print(F("RI: "));
 
-          data_buffer[header_data.file_name_offset + header_data.file_name_length] = '\0';
+          //data_buffer[header_data.file_name_offset + header_data.file_name_length] = '\0';
+          
           char* file_name_pointer = (char*)&data_buffer[header_data.file_name_offset];
           
           // Serial.print(F("File Name Requested: "));
@@ -142,9 +143,8 @@ void loop() {
                 http_handler.send_generic_server_error(unsupported_action_msg);
                 break;
               }
-              
               //Serial.write("Post Message received");
-
+              
               http_handler.send_generic_server_error(unsupported_action_msg);
               ////delete data_buffer;
               file_name_pointer = NULL;
