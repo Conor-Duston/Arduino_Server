@@ -14,6 +14,7 @@
 enum upload_state
 {
     Empty,
+    File_Verify,
     In_Progress,
     Done,
     Error
@@ -35,6 +36,8 @@ private:
     uint64_t current_file_size = 0;
     uint64_t  bytes_written = 0;
     char boundary_delimeter[MAX_BOUNDARY_LENGTH + 1];
+    char* file_name = nullptr;
+
     ExFile* file;
 
     upload_state internal_state;

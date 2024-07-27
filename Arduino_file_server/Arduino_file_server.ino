@@ -120,8 +120,7 @@ void loop() {
           // Serial.print(F("File Name Requested: "));
           // Serial.println(file_name_pointer);
           
-         
-
+          
           const __FlashStringHelper *unsupported_action_msg = F("Unsupported action");
 
           switch (header_data.type) {
@@ -138,11 +137,7 @@ void loop() {
             break;
 
             case POST:
-
-              if (header_data.file_name_length < 2) {
-                http_handler.send_generic_server_error(unsupported_action_msg);
-                break;
-              }
+  
               //Serial.write("Post Message received");
               
               http_handler.send_generic_server_error(unsupported_action_msg);

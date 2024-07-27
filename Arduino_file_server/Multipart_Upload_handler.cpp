@@ -35,6 +35,10 @@ Multipart_Upload_Handler::Multipart_Upload_Handler()
 
 Multipart_Upload_Handler::~Multipart_Upload_Handler()
 {
+    if (file_name != nullptr) {
+        free(file_name);
+        file_name == nullptr;
+    }
 }
 
 upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer, size_t length) {
