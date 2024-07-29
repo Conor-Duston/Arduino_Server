@@ -10,7 +10,7 @@
 
 
 // Header strings
-const char required_content_string[] PROGMEM = "content-type";
+const char required_content_type_string[] PROGMEM = "content-type:";
 
 const char valid_content_type[] PROGMEM = "multipart/form-data;";
 
@@ -23,7 +23,10 @@ const char filename_start[] PROGMEM = "filename=";
 //File location
 const char file_folder[] PROGMEM = "usr/";
 
-const char boundary_error[] PROGMEM = "Boundary delimeter contains non-ASCII character";
+//Error flags
+const char boundary_invalid_char_error[] PROGMEM = "Boundary string is not correctly formatted";
+const char boundary_not_present_error[] PROGMEM = "Boundary is not present";
+const char duplicate_boundary_header[] PROGMEM = "More than 1 boundary string is present";
 
 Multipart_Upload_Handler::Multipart_Upload_Handler()
 {
@@ -41,7 +44,6 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
     if (this->internal_state == Empty) {
       
         bool multiline_acceptable = false;
-        bool in_quotes = false;
         bool reading_value = false;
         bool read_content_type = false;
         bool read_boundary_value = false;
@@ -53,18 +55,36 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
         bool new_line = false;
         
         for(unsigned int i = 0; i < length; i++) {
-            if (buffer[i] == '\n') {
-                
+            
+            if (buffer[i] == '\n' && !multiline_acceptable) {
                 //Serial.println();
-                
                 if (new_line) {
                     // end of header has been hit
+                    if (read_boundary_value && this->internal_state != Error) {
+                        
+                        this->internal_state = In_Progress;
+                        Serial.print(F("Boundary: "));
+                        Serial.println(boundary_delimeter);
+                    } else {
+                        
+                        this->internal_state = Error;
+                        this->error_description = boundary_not_present_error;
+                    }
                     return;
                 }
                 new_line = true;
                 acceptable_line = true;
                 multiline_acceptable = false;
                 line_iterator = 0;
+                if (read_boundary_value && reading_value && read_content_type) {
+                    this->internal_state = Error;
+                    this->error_description = duplicate_boundary_header;
+                }
+                if (reading_value && read_content_type) {
+                    reading_value = false;
+                    read_boundary_value = true;
+                    boundary_delimeter[spare_iterator - strlen_P(boundary_string) + 1] = '\0';
+                }
                 continue;
             }
             
@@ -74,37 +94,43 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
 
             if (buffer[i] == ';') {
                 multiline_acceptable = true;
-            } else if (multiline_acceptable) {
+            } else if (multiline_acceptable && !buffer[i] == '\n') {
                 multiline_acceptable = false;
             }
 
             if (acceptable_line) {
-                if (line_iterator < strlen_P(required_content_string)) {
-                    char curr_char = pgm_read_byte_near(required_content_string + line_iterator);
+                if (line_iterator < strlen_P(required_content_type_string)) {
+                    char curr_char = pgm_read_byte_near(required_content_type_string + line_iterator);
                     if (curr_char != tolower(buffer[i])) {
                         acceptable_line = false;
                     }
                     line_iterator++;
                     continue;
                 }
-                if (!read_content_type) {
+
+                if(!read_boundary_value) {
+                    
                     if (!reading_value && !multiline_acceptable) {
                         if (!isWhitespace(buffer[i])) {
                             reading_value = true;
                         }
                     } else if (!reading_value) {
-                        if (!isWhitespace(buffer[i]) || buffer[i] == '\n' || buffer[i] == '\r') {
+                        if (!isWhitespace(buffer[i]) && !buffer[i] == '\n' && !buffer[i] == '\r') {
                             reading_value = true;
                         }
                     }
+
                     if (reading_value) {
                         if (!read_content_type) {
                             if (spare_iterator < strlen_P(valid_content_type)) {
-                                    char curr_char = pgm_read_byte_near(valid_content_type + spare_iterator);
+                                
+                                char curr_char = pgm_read_byte_near(valid_content_type + spare_iterator);
+                                
                                 if (curr_char != tolower(buffer[i])) {
                                     acceptable_line = false;
                                     spare_iterator = 0;
                                 }
+                                
                                 line_iterator++;
                                 spare_iterator++;
                                 continue;
@@ -117,27 +143,34 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
                             }
                         }
                         
-                        if (spare_iterator < strlen_P(boundary_string)) {
+                        if (spare_iterator - (strlen_P(valid_content_type) - 1) < strlen_P(boundary_string)) {
                             char curr_char = pgm_read_byte_near(boundary_string + spare_iterator);
                             if (curr_char != tolower(buffer[i])) {
                                 acceptable_line = false;
                                 spare_iterator = 0;
                             }
-                            // Notes: First checks for ASCII characters as per requirements in the MIME RFC, 
-                            // then checks to make sure that the iterator will not go out of bounds of the boundary string.
-                            else if (isAscii(buffer[i]) && (spare_iterator - strlen_P(boundary_string) + 1 < 70)) {
-                                boundary_delimeter[spare_iterator - strlen_P(boundary_string) + 1] = buffer[i];
-                            } else {
-                                this->internal_state = Error;
-                            }
+                            spare_iterator++;
                         }
-                        
+                        // Notes: First checks for ASCII characters as per requirements in the MIME RFC, 
+                        // then checks to make sure that the iterator will not go out of bounds of the boundary string.
+                        else if (isAscii(buffer[i]) && (spare_iterator - (strlen_P(boundary_string) + strlen_P(valid_content_type) - 2) + 1 < 70)) {
+                            this->boundary_delimeter[spare_iterator - (strlen_P(boundary_string) + strlen_P(valid_content_type) - 2) + 1] = buffer[i];
+                            spare_iterator++;
+                            Serial.print(buffer[i]);
+                            continue;
+                        }
+                        if (!buffer[i] == ' ') {
+                            Serial.println(F("Too many characters"));
+
+                            this->internal_state = Error;
+                            this->error_description = boundary_invalid_char_error;
+                            continue;
+                        }
                     }
-                       
                 }
             }
-
         }
+        
     } else if (this->internal_state == In_Progress) {
 
     } 

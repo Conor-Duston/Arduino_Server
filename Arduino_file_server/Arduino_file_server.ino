@@ -99,7 +99,8 @@ void loop() {
           header_data header_data = http_handler.read_request(data_buffer, num_bytes_read);
           data_buffer[num_bytes_read] = '\0';
           
-          Serial.write((char*)data_buffer);
+          Serial.print((char*)data_buffer);
+          Serial.println();
 
           // Serial.print(F("Message Type: "));
           // Serial.println(header_data.type);
@@ -139,7 +140,9 @@ void loop() {
             case POST:
               
               //Serial.write("Post Message received");
-              
+              temp.parse_text_for_upload(&data_buffer[header_data.file_name_offset + header_data.file_name_length], 
+                  num_bytes_read - header_data.file_name_offset - header_data.file_name_length);
+
               http_handler.send_generic_server_error(unsupported_action_msg);
               ////delete data_buffer;
               file_name_pointer = NULL;
@@ -206,11 +209,13 @@ void stream_file(char* file_name, u16 file_length) {
   if (file_length < 2) {
     strcpy_P(file_name_array, default_destination);
     file_name_pointer = file_name_array;
+  } else {
+    file_name[file_length] = '\0';
   }
   
   
-  //Serial.print(F("file: "));
-  //Serial.println(file_name_pointer);
+  // Serial.print(F("file: "));
+  // Serial.println(file_name_pointer);
 
   bool file_found;
   file_found = file.open(file_name_pointer, O_RDONLY);
@@ -237,11 +242,14 @@ void stream_file(char* file_name, u16 file_length) {
     strcat_P(mime_string, file_type.sub_type);
 
     //Serial.print(F("Mime type requested: "));
-    Serial.println(mime_string);
+    //Serial.println(mime_string);
     
     // Stream data from file
     http_handler.stream_typed_file(&file, data_buffer, DATA_BFFR_SIZE, mime_string);
 
     file.close();
+  }
+  if (file_length > 1) {
+    file_name[file_length] = ' ';
   }
 }
