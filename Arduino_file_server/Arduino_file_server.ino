@@ -99,7 +99,7 @@ void loop() {
           header_data header_data = http_handler.read_request(data_buffer, num_bytes_read);
           data_buffer[num_bytes_read] = '\0';
           
-          // Serial.write((char*)data_buffer);
+          Serial.write((char*)data_buffer);
 
           // Serial.print(F("Message Type: "));
           // Serial.println(header_data.type);

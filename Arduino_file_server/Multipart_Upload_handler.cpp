@@ -8,18 +8,12 @@
 // Form ends with -- after content type
 // Boundary Delimiters must be 70 or fewer characters. If A non- alpha characters appears, it must be enclosed in quotes.
 
-enum header_types : u8 {
-    length = 0x1,
-    boundary = 0x2,
-    connection = 0x4
-};
 
 // Header strings
-const char content_string[] PROGMEM = "content-";
-const char content_length[] PROGMEM = "length:";
+const char required_content_string[] PROGMEM = "content-type";
 
-const char content_type[] PROGMEM = "type:";
 const char valid_content_type[] PROGMEM = "multipart/form-data;";
+
 const char boundary_string[] PROGMEM = "boundary=";
 
 //Form data header strings
@@ -28,6 +22,8 @@ const char filename_start[] PROGMEM = "filename=";
 
 //File location
 const char file_folder[] PROGMEM = "usr/";
+
+const char boundary_error[] PROGMEM = "Boundary delimeter contains non-ASCII character";
 
 Multipart_Upload_Handler::Multipart_Upload_Handler()
 {
@@ -46,11 +42,15 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
       
         bool multiline_acceptable = false;
         bool in_quotes = false;
+        bool reading_value = false;
+        bool read_content_type = false;
+        bool read_boundary_value = false;
+
         bool acceptable_line = true;
         unsigned int line_iterator = 0;
-        unsigned int header_length = 0;
-        bool new_line;
-        header_types acceptable_types = header_types( length | boundary | connection);
+        unsigned int spare_iterator = 0; 
+
+        bool new_line = false;
         
         for(unsigned int i = 0; i < length; i++) {
             if (buffer[i] == '\n') {
@@ -58,58 +58,86 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
                 //Serial.println();
                 
                 if (new_line) {
-                // end of header has been hit
-                return;
+                    // end of header has been hit
+                    return;
                 }
                 new_line = true;
                 acceptable_line = true;
                 multiline_acceptable = false;
                 line_iterator = 0;
-                acceptable_types = header_types( length | boundary | connection);
                 continue;
+            }
+            
+            if (buffer[i] != '\r' && new_line) {
+                new_line = false;
             }
 
             if (buffer[i] == ';') {
                 multiline_acceptable = true;
+            } else if (multiline_acceptable) {
+                multiline_acceptable = false;
             }
 
             if (acceptable_line) {
-                if (line_iterator < strlen_P(content_string)) {
-                    char curr_char = pgm_read_byte_near(content_string + line_iterator);
+                if (line_iterator < strlen_P(required_content_string)) {
+                    char curr_char = pgm_read_byte_near(required_content_string + line_iterator);
                     if (curr_char != tolower(buffer[i])) {
-                        acceptable_line == false;
+                        acceptable_line = false;
                     }
+                    line_iterator++;
                     continue;
                 }
-                if (acceptable_types & length != 0) {
-                    if (line_iterator - (strlen_P(content_string) - 1) < strlen_P(content_length)) {
-                        char curr_char = pgm_read_byte_near(content_length + line_iterator - strlen_P(content_string) - 1);
-                        if (curr_char != tolower(buffer[i])) {
-                            acceptable_types ^ length;
+                if (!read_content_type) {
+                    if (!reading_value && !multiline_acceptable) {
+                        if (!isWhitespace(buffer[i])) {
+                            reading_value = true;
                         }
-                        continue;    
-                    }
-                    
-                    if (isDigit(buffer[i])) {
-                        this;
-                    }
-
-                }
-
-                if (acceptable_types & boundary != 0) {
-                    if (line_iterator - (strlen_P(content_string) - 1) < strlen_P(content_type)) {
-                        char curr_char = pgm_read_byte_near(content_type + line_iterator - strlen_P(content_string) - 1);
-                        if (curr_char != tolower(buffer[i])) {
-                            acceptable_types ^ boundary;
+                    } else if (!reading_value) {
+                        if (!isWhitespace(buffer[i]) || buffer[i] == '\n' || buffer[i] == '\r') {
+                            reading_value = true;
                         }
-                        continue;
                     }
-
+                    if (reading_value) {
+                        if (!read_content_type) {
+                            if (spare_iterator < strlen_P(valid_content_type)) {
+                                    char curr_char = pgm_read_byte_near(valid_content_type + spare_iterator);
+                                if (curr_char != tolower(buffer[i])) {
+                                    acceptable_line = false;
+                                    spare_iterator = 0;
+                                }
+                                line_iterator++;
+                                spare_iterator++;
+                                continue;
+                            } else {
+                                spare_iterator = 0;
+                                read_content_type = true;
+                                reading_value = false;
+                                line_iterator++;
+                                continue;
+                            }
+                        }
+                        
+                        if (spare_iterator < strlen_P(boundary_string)) {
+                            char curr_char = pgm_read_byte_near(boundary_string + spare_iterator);
+                            if (curr_char != tolower(buffer[i])) {
+                                acceptable_line = false;
+                                spare_iterator = 0;
+                            }
+                            // Notes: First checks for ASCII characters as per requirements in the MIME RFC, 
+                            // then checks to make sure that the iterator will not go out of bounds of the boundary string.
+                            else if (isAscii(buffer[i]) && (spare_iterator - strlen_P(boundary_string) + 1 < 70)) {
+                                boundary_delimeter[spare_iterator - strlen_P(boundary_string) + 1] = buffer[i];
+                            } else {
+                                this->internal_state = Error;
+                            }
+                        }
+                        
+                    }
+                       
                 }
-
             }
-        }
 
+        }
     } else if (this->internal_state == In_Progress) {
 
     } 

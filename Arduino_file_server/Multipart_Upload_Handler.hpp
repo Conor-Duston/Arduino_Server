@@ -14,7 +14,7 @@
 enum upload_state
 {
     Empty,
-    File_Verify,
+    Verify_File_Permissions,
     In_Progress,
     Done,
     Error
@@ -41,6 +41,8 @@ private:
     ExFile* file;
 
     upload_state internal_state;
+
+    PROGMEM_PNTR error_description = nullptr;
 };
 
 #endif
