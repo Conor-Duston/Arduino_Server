@@ -106,8 +106,8 @@ void loop() {
           // Serial.println(header_data.type);
 
           // // RI stands for Resource Identifier, aka file name
-          // Serial.print(F("RI length: "));
-          // Serial.println(header_data.file_name_length);
+          //Serial.print(F("RI length: "));
+          //Serial.println(header_data.file_name_length);
 
           // Serial.print(F("RI Offset: "));
           // Serial.println(header_data.file_name_offset);
@@ -207,15 +207,13 @@ void stream_file(char* file_name, u16 file_length) {
   char *file_name_pointer = file_name;
 
   if (file_length < 2) {
-    strcpy_P(file_name_array, default_destination);
-    file_name_pointer = file_name_array;
+    file_name_pointer = strcpy_P(file_name_array, default_destination);
   } else {
     file_name[file_length] = '\0';
   }
   
-  
-  // Serial.print(F("file: "));
-  // Serial.println(file_name_pointer);
+  //Serial.print(F("file: "));
+  //Serial.println(file_name_pointer);
 
   bool file_found;
   file_found = file.open(file_name_pointer, O_RDONLY);

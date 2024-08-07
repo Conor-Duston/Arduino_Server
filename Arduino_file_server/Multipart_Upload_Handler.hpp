@@ -5,6 +5,7 @@
 #include <Ethernet.h>
 
 #define MAX_BOUNDARY_LENGTH 70
+#define MAX_PARTIAL_LENGTH 1024
 
 #define PROGMEM_PNTR const char*
 
@@ -29,14 +30,18 @@ public:
     upload_state parse_text_for_upload(const byte* data_buffer, size_t length);
 
 protected:
-    void parse_header_for_data(const char* header, size_t length);
+    
 
 private:
+
+    const byte* parse_headers(const byte* data_buffer, size_t length);
+    
+    void parse_body(const byte* data_buffer, size_t length);
 
     uint64_t current_file_size = 0;
     uint64_t  bytes_written = 0;
     char boundary_delimeter[MAX_BOUNDARY_LENGTH + 1];
-    char* file_name = nullptr;
+    char* last_line = nullptr;
 
     ExFile* file;
 
