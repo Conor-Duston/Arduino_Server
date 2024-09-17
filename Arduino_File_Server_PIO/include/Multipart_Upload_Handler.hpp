@@ -37,7 +37,7 @@ private:
     const byte* parse_headers(const byte* data_buffer, size_t length);
     
     void parse_body(const byte* data_buffer, size_t length);
-
+    
     uint64_t current_file_size = 0;
     uint64_t  bytes_written = 0;
     char boundary_delimeter[MAX_BOUNDARY_LENGTH + 1];

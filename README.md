@@ -13,17 +13,14 @@ The SD card used is an ExFat mini sd card, inserted into the Ethernet Shield's S
 The server code will not work for **any** other device combinations, **THE BOARD, SHIELD, AND SD CARD** need to be the same. 
 
 ### Networking
-The hardcoded MAC on [line 28 of Arduino_file_server.ino](/Arduino_file_server/Arduino_file_server.ino)  ***needs*** to be changed based on your shields IP address. Check [Arduino shield documentation](https://docs.arduino.cc/hardware/ethernet-shield-rev2/) for more info.
+The hardcoded MAC on [line 28 of main.cpp](/Arduino_file_server_PIO/src/main.cpp)  ***needs*** to be changed based on your shields IP address. Check [Arduino shield documentation](https://docs.arduino.cc/hardware/ethernet-shield-rev2/) for more info.
 The IP address is done based on the internet router's range of IP addresses on the same network. This can vary between routers and IP types.
 ***CAUTION*** it is **NOT** recommended to use this project over publicly accessible networks. There are **NO** security features currently added to the project. 
 
 ### Setting up and Running
-This project requires either Visual Studio Code or Arduino IDE to run.
-If you use Visual Studio Code, make sure to have the Arduino extension installed as well as the CPP extension.
+This project requires Visual Studio Code with PlatformIO installed to be run.
 
-- Before compiling the project, install the following Arduino libraries:
-    - Ethernet
-    - SdFat
+To build this project:
 - Attach your Arduino Ethernet Hat to the Arduino Mega board
 - Acquire an SD card with more than 32 GB of space and transfer index.html file to that card
 - Place the SD card into the Ethernet hat

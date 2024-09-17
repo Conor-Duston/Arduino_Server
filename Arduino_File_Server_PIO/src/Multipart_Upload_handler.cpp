@@ -47,6 +47,8 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
         if (body == NULL) {
             return Error;
         }
+
+        this->internal_state = In_Progress;
     } 
     if (this->internal_state == In_Progress) {
 
@@ -250,12 +252,10 @@ const byte* Multipart_Upload_Handler::parse_headers(const byte* buffer, size_t l
     return NULL;
 }
 
-void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
-    if (this->last_line != nullptr) {
-        
-    }
 
+void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
+    
     for (unsigned int i = 0; i < length; i++) {
-         
+             
     }   
 }
