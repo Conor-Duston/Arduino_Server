@@ -51,9 +51,12 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
     if (this->internal_state == In_Progress) {
 
     } 
-
+    return Error;
 }
 
+// This function is created to parse the starting headers of the HTTP message for data required for file uploads and 
+// modify the state of the upload handler to reflect the data.
+// This function Returns address of the start of the file body if headers are successfully parsed, else returns null
 const byte* Multipart_Upload_Handler::parse_headers(const byte* buffer, size_t length) {
     bool multiline_acceptable = false;
     bool reading_value = false;

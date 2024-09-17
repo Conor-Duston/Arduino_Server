@@ -273,7 +273,7 @@ mime_type search_table(const mime_lookup* mime_table_in_progmem, const unsigned 
     
     //Check every entry for level. If it exists, return that entries pointers, else return default.
     for (int i = 0; i < table_size; i++) {
-        char temp[30];
+        // char temp[30];
         
         // Raw data: 3 pointers; 1 for extension type, 1 for super, 1 for sub
         // All pointers are close pointers for now, be careful to not fill up progmem to much
@@ -330,7 +330,8 @@ const mime_type get_file_mime_type(const char* file_name) {
     }
 
     char file_extension_select = toLowerCase(file_extension[1]);
-
+    
+    //FIXME: turn charater into index for search table instead of this nonsense
     switch (file_extension_select)
     {
     case 'a':
