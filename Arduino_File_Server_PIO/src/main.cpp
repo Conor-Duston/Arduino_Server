@@ -60,7 +60,7 @@ void setup() {
   // put your setup code here, to run once:
   Ethernet.init(10);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   Ethernet.begin(mac, ip);
 
