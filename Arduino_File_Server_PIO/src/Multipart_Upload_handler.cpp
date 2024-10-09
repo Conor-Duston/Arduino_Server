@@ -17,7 +17,7 @@ const char valid_content_type[] PROGMEM = "multipart/form-data;";
 const char boundary_string[] PROGMEM = "boundary=";
 
 //Form data header strings
-const char correct_disposition[] PROGMEM = "disposition: form-data;"; 
+const char correct_disposition[] PROGMEM = "content-disposition: form-data;"; 
 const char filename_start[] PROGMEM = "filename=";
 
 //File location
@@ -222,6 +222,7 @@ const byte* Multipart_Upload_Handler::parse_headers(const byte* buffer, size_t l
 
                         if (isControl(buffer[i]) || buffer[i] == ' ') {
                             this->boundary_delimeter[spare_iterator + 1] = '\0';
+                            this->boundary_delimeter_length = spare_iterator;
                             spare_iterator = 0;
                             
                             Serial.print(F("Parsed Boundary String: "));
@@ -254,8 +255,89 @@ const byte* Multipart_Upload_Handler::parse_headers(const byte* buffer, size_t l
 
 
 void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
-    
-    for (unsigned int i = 0; i < length; i++) {
-             
-    }   
+    body_parse_state this_state = Out_Of_Boundary;
+    body_parse_state prev_state = Out_Of_Boundary;
+
+    u16 character_in_line = 0;
+    bool parse_line = true;
+    bool parse_field = true;
+    const byte* body_pointer = nullptr;
+
+    for (int i = 0; i < length; i++) {
+        if (!parse_line) {
+            if (!(buffer[i] == '\n')) {
+                continue;
+            }
+            parse_line = true;
+            character_in_line = 0;
+            continue;
+        }
+        switch (this_state) {
+
+        case Out_Of_Boundary:
+            if (!(buffer[i] == '-')) {
+                parse_line = false;
+            } else if (character_in_line == 1 ){
+                this_state = Parsing_For_Boundary;
+                prev_state = Out_Of_Boundary;
+            } else if (character_in_line > 1) {
+                parse_line = false;
+            }
+            break;
+        case Parsing_For_Boundary:
+            // First, check to make sure we are reading in the boundary
+            if ((character_in_line - 2 < this->boundary_delimeter_length) && buffer[i] != boundary_delimeter[character_in_line - 2]) {
+                //If we haven't read the boundary, continue with what was done before
+                this_state = prev_state;
+            } else if ((character_in_line - 2 == this->boundary_delimeter_length)) {
+                // If we hit the first character in the CLRF, we are in a new section and need to parse header
+                if (buffer[i] == '\r') {
+                    this_state = Section_Header;
+                    prev_state = Parsing_For_Boundary;
+                    if (body_pointer != nullptr) {
+                        //Write to file the body up until this line minus the extra CLRF for the end pointer
+                        write_to_file(body_pointer, (&buffer[i] - body_pointer - character_in_line - 2));
+                        body_pointer = nullptr;
+                    } 
+                    //If another character is hit, it means that the line is not providing a boundary delimeter, can return to prior state
+                } if (buffer[i] != '-') {
+                    this_state = prev_state;
+                }
+            } else if (character_in_line - 2 == (this->boundary_delimeter_length + 1)) {
+                if (buffer[i] != '-') {
+                    this_state = prev_state;
+                } else {
+                    if (body_pointer != nullptr) {
+                        //Write to file the body up until this line minus the extra CLRF for the end pointer
+                        write_to_file(body_pointer, (&buffer[i] - body_pointer - character_in_line - 2));
+                        body_pointer = nullptr;
+                    }
+                    break;
+                }
+            } 
+            break;
+        case Section_Header:
+            if (!character_in_line < strlen_P(correct_disposition)) {
+                if (!parse_field && buffer[i] == ';') {
+                    parse_field = true;
+                }
+            }
+            break;
+        case Section_Body:
+
+            break;
+        }
+
+        character_in_line++;
+
+        if(buffer[i] == '\n') {
+            character_in_line = 0;
+            parse_line = true;
+        }
+    }
+}
+
+void Multipart_Upload_Handler::write_to_file(const byte* buffer, size_t length) {
+    //Show what is written to file for now
+    Serial.write(buffer, length);
 }

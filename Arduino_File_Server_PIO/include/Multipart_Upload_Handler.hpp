@@ -34,13 +34,25 @@ protected:
 
 private:
 
+    enum body_parse_state {
+        Out_Of_Boundary,
+        Parsing_For_Boundary,
+        Section_Header,
+        Section_Body,
+        Done_Parse
+    };
+
     const byte* parse_headers(const byte* data_buffer, size_t length);
     
     void parse_body(const byte* data_buffer, size_t length);
     
+    void write_to_file(const byte* data, size_t length);
+
     uint64_t current_file_size = 0;
     uint64_t  bytes_written = 0;
     char boundary_delimeter[MAX_BOUNDARY_LENGTH + 1];
+    uint8_t boundary_delimeter_length = 0;
+
     char* last_line = nullptr;
 
     ExFile* file;
