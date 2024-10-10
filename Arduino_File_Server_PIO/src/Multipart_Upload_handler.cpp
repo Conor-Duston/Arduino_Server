@@ -17,7 +17,7 @@ const char valid_content_type[] PROGMEM = "multipart/form-data;";
 const char boundary_string[] PROGMEM = "boundary=";
 
 //Form data header strings
-const char correct_disposition[] PROGMEM = "content-disposition: form-data;"; 
+const char correct_disposition[] PROGMEM = "content-disposition: form-data"; 
 const char filename_start[] PROGMEM = "filename=";
 
 //File location
@@ -259,9 +259,19 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
     body_parse_state prev_state = Out_Of_Boundary;
 
     u16 character_in_line = 0;
+
+    u16 subfield_start = 0;
+
     bool parse_line = true;
     bool parse_field = true;
+    bool parsing_field = false;
+    bool in_quotes = false;
+    bool new_line = true;
+    bool correct_field = true;
     const byte* body_pointer = nullptr;
+
+    const byte* file_name_pointer = nullptr;
+    u16 file_name_length = 0;
 
     for (int i = 0; i < length; i++) {
         if (!parse_line) {
@@ -317,14 +327,63 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
             } 
             break;
         case Section_Header:
-            if (!character_in_line < strlen_P(correct_disposition)) {
+            if (correct_field && character_in_line < strlen_P(correct_disposition)) {
+                char cmp = pgm_read_byte_near(correct_disposition + character_in_line);
+                if (cmp != tolower(buffer[i])) {
+                    correct_field == false;
+                }
+            } else if (correct_field) {
                 if (!parse_field && buffer[i] == ';') {
                     parse_field = true;
+                } else {
+                    if (buffer[i] != ' '  && !parsing_field) {
+                        parsing_field = true;
+                        subfield_start = character_in_line;
+                    } else if (!parsing_field) {
+                        continue;
+                    }
+                    if ((character_in_line - subfield_start) < strlen_P(filename_start)) {
+                        char cmp = pgm_read_byte_near(filename_start + character_in_line - subfield_start);
+                        if (cmp != buffer[i]) {
+                            parse_field = false;
+                            parsing_field = false;
+                            continue;
+                        }
+                    } else {
+                        if (!in_quotes && buffer[i] == '"') {
+                            in_quotes = true;
+                            continue;
+                        } if (in_quotes && buffer[i] == '"') {
+                            in_quotes = false;
+                            parsing_field = false;
+                            continue;
+                        }
+                        if (file_name_pointer == nullptr) {
+                            file_name_pointer = &buffer[i];
+                        }
+                        file_name_length++;
+                    }
                 }
+            } 
+            
+            if (new_line && buffer[i] == '\n') {
+                prev_state = Section_Header;
+                this_state = Section_Body;
             }
+            if (buffer[i] == '\n') {
+                new_line = true;
+            }
+            if (buffer[i] != '\r') {
+                new_line = false;
+            } 
             break;
         case Section_Body:
-
+            if (!new_line) {
+                Serial.write(file_name_pointer, file_name_length);
+                new_line = true;
+            } if (prev_state == Section_Header && body_pointer == nullptr) {
+                body_pointer = &buffer[i];
+            }
             break;
         }
 
