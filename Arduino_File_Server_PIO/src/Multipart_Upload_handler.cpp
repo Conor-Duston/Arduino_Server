@@ -40,10 +40,13 @@ Multipart_Upload_Handler::~Multipart_Upload_Handler()
     }
 }
 
+// Function to parse the text received from buffer into appropriate files.
+// Does verification of headers, does not do verification of file names
 upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer, size_t length) {
+    const byte* body = buffer;
     if (this->internal_state == Empty) {
         //Serial.println((char *)buffer);
-        const byte* body = parse_headers(buffer, length);
+        body = parse_headers(buffer, length);
         if (body == NULL) {
             return Error;
         }
@@ -51,7 +54,16 @@ upload_state Multipart_Upload_Handler::parse_text_for_upload(const byte* buffer,
         this->internal_state = In_Progress;
     } 
     if (this->internal_state == In_Progress) {
-
+        if (body != buffer) {
+            // Start at offset, account for offset by subtracting number of characters parsed
+            Serial.println(F("Parsing body at offset"));
+            parse_body(body, length - (body - buffer));
+        } else {
+            Serial.println(F("Parsing body at beginning"));
+            // For repeat calls
+            parse_body(buffer, length);
+        }
+        // Error return check goes hear when finished
     } 
     return Error;
 }
@@ -253,7 +265,9 @@ const byte* Multipart_Upload_Handler::parse_headers(const byte* buffer, size_t l
     return NULL;
 }
 
-
+// Function parses the body of a VERIFIED multipart upload for files and extracts 
+// and prints the names in the files.
+// Update this to return error, request callback, or done?
 void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
     body_parse_state this_state = Out_Of_Boundary;
     body_parse_state prev_state = Out_Of_Boundary;
@@ -273,35 +287,37 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
     const byte* file_name_pointer = nullptr;
     u16 file_name_length = 0;
 
-    for (int i = 0; i < length; i++) {
+    for (unsigned int i = 0; i < length; i++) {
         if (!parse_line) {
-            if (!(buffer[i] == '\n')) {
-                continue;
+            if (buffer[i] == '\n') {
+                parse_line = true;
+                character_in_line = 0;
             }
-            parse_line = true;
-            character_in_line = 0;
             continue;
         }
-        switch (this_state) {
 
+        switch (this_state) {
         case Out_Of_Boundary:
-            if (!(buffer[i] == '-')) {
+            if (character_in_line > 1 || buffer[i] != '-') {
                 parse_line = false;
-            } else if (character_in_line == 1 ){
+                continue;
+            } 
+            if (character_in_line == 1 ){
                 this_state = Parsing_For_Boundary;
                 prev_state = Out_Of_Boundary;
-            } else if (character_in_line > 1) {
-                parse_line = false;
             }
             break;
+        
         case Parsing_For_Boundary:
             // First, check to make sure we are reading in the boundary
             if ((character_in_line - 2 < this->boundary_delimeter_length) && buffer[i] != boundary_delimeter[character_in_line - 2]) {
                 //If we haven't read the boundary, continue with what was done before
+                Serial.println(F("Did not parse correct character"));
                 this_state = prev_state;
             } else if ((character_in_line - 2 == this->boundary_delimeter_length)) {
                 // If we hit the first character in the CLRF, we are in a new section and need to parse header
                 if (buffer[i] == '\r') {
+                    Serial.println(F("Parsed in boundary delimeter"));
                     this_state = Section_Header;
                     prev_state = Parsing_For_Boundary;
                     if (body_pointer != nullptr) {
@@ -311,26 +327,35 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
                     } 
                     //If another character is hit, it means that the line is not providing a boundary delimeter, can return to prior state
                 } if (buffer[i] != '-') {
+                    Serial.println(F("Found character not in boundary string, returning to prior section"));
                     this_state = prev_state;
                 }
             } else if (character_in_line - 2 == (this->boundary_delimeter_length + 1)) {
                 if (buffer[i] != '-') {
+                    Serial.println(F("Found character not in boundary string, returning to prior section"));
                     this_state = prev_state;
                 } else {
                     if (body_pointer != nullptr) {
                         //Write to file the body up until this line minus the extra CLRF for the end pointer
+                        Serial.println(F("Found final boundary delimeter, exiting string"));
                         write_to_file(body_pointer, (&buffer[i] - body_pointer - character_in_line - 2));
                         body_pointer = nullptr;
+                        this_state = Done_Parse;
                     }
                     break;
                 }
-            } 
+            }
             break;
+        
         case Section_Header:
             if (correct_field && character_in_line < strlen_P(correct_disposition)) {
                 char cmp = pgm_read_byte_near(correct_disposition + character_in_line);
                 if (cmp != tolower(buffer[i])) {
-                    correct_field == false;
+                    Serial.print(F("Found character not in buffer. Buffer: "));
+                    Serial.print(buffer[i]);
+                    Serial.print(F(" comparison character: "));
+                    Serial.println(cmp);
+                    correct_field = false;
                 }
             } else if (correct_field) {
                 if (!parse_field && buffer[i] == ';') {
@@ -377,6 +402,7 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
                 new_line = false;
             } 
             break;
+        
         case Section_Body:
             if (!new_line) {
                 Serial.write(file_name_pointer, file_name_length);
@@ -385,6 +411,9 @@ void Multipart_Upload_Handler::parse_body(const byte* buffer, size_t length) {
                 body_pointer = &buffer[i];
             }
             break;
+        
+        case Done_Parse:
+            return;
         }
 
         character_in_line++;
